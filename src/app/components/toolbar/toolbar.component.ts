@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Output,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,11 +15,11 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [RouterModule, MatToolbarModule, MatButtonModule, MatIconModule],
   template: `
     <mat-toolbar>
-      <button mat-icon-button aria-label="menu">
+      <button mat-icon-button aria-label="menu" (click)="menuClick.emit()">
         <mat-icon>menu</mat-icon>
       </button>
       <span routerLink="/">CMS</span>
-      <span class="toolbar-spacer"></span>
+      <span class="app-toolbar-spacer"></span>
       <button mat-icon-button aria-label="person" routerLink="/profile">
         <mat-icon>person</mat-icon>
       </button>
@@ -27,10 +32,12 @@ import { MatIconModule } from '@angular/material/icon';
     </mat-toolbar>
   `,
   styles: `
-    .toolbar-spacer {
+    .app-toolbar-spacer {
       flex: 1 1 auto;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ToolbarComponent {}
+export class ToolbarComponent {
+  @Output() menuClick = new EventEmitter();
+}
