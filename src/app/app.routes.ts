@@ -40,6 +40,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'content-list/:locale/:group1/:group2/:group3/:group4',
+    loadComponent: () =>
+      import('./pages/content-list/content-list.component').then(
+        c => c.ContentListComponent
+      ),
+  },
+  {
     path: 'content-detail/:locale/:group1/:id',
     loadComponent: () =>
       import('./pages/content-detail/content-detail.component').then(

@@ -1,9 +1,16 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ArrayDataSource } from '@angular/cdk/collections';
 import { NestedTreeControl, CdkTreeModule } from '@angular/cdk/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { ContentTreeService } from '../../services/content-tree.service';
+import { ContentManagementService } from '../../services/content-management.service';
 
 @Component({
   selector: 'app-sidenav',
@@ -12,11 +19,18 @@ import { MatButtonModule } from '@angular/material/button';
   template: `
     <div class="app-tree-wrapper">
       <h4>Content management</h4>
-      <cdk-tree [dataSource]="dataSource" [treeControl]="treeControl">
+      <cdk-tree [dataSource]="contentTree()" [treeControl]="treeControl">
         <cdk-nested-tree-node *cdkTreeNodeDef="let node" class="app-tree-node">
           <button mat-icon-button disabled></button>
-          @if (node.routerLink) {
-            <a [routerLink]="node.routerLink" routerLinkActive="active">
+          @if (node.path) {
+            <a
+              [routerLink]="
+                '/content-list/' +
+                contentManagementService.locale() +
+                '/' +
+                node.path
+              "
+              routerLinkActive="active">
               {{ node.name }}
             </a>
           } @else {
@@ -90,51 +104,24 @@ import { MatButtonModule } from '@angular/material/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidenavComponent {
+  contentTreeService = inject(ContentTreeService);
+  contentManagementService = inject(ContentManagementService);
+
+  contentTree = signal<ArrayDataSource<any>>([] as any);
   treeControl = new NestedTreeControl<any>(node => node.children);
-  hasChild = (_: number, node: any) =>
-    !!node.children && node.children.length > 0;
-  dataSource = new ArrayDataSource([
-    {
-      name: 'Auto',
-      children: [
-        { name: 'Pages', routerLink: '/content-list/it-IT/auto/pages' },
-        { name: 'Cards', routerLink: '/content-list/it-IT/auto/cards' },
-        {
-          name: 'Owners Club',
-          routerLink: '/content-list/it-IT/auto/owners-club',
-        },
-      ],
-    },
-    {
-      name: 'Racing',
-      children: [
-        {
-          name: 'Hypercar',
-          routerLink: '/content-list/it-IT/racing/hypercar',
-        },
-        {
-          name: 'Scuderia',
-          children: [
-            {
-              name: 'F1',
-              routerLink: '/content-list/it-IT/racing/scuderia/f1',
-            },
-            {
-              name: 'News',
-              children: [
-                {
-                  name: '2022',
-                  routerLink: '/content-list/it-IT/racing/news/2022',
-                },
-                {
-                  name: '2023',
-                  routerLink: '/content-list/it-IT/racing/news/2023',
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ]);
+
+  constructor() {}
+
+  ngOnInit() {
+    this.getContentTree();
+  }
+
+  hasChild(_: number, node: any) {
+    return !!node.children && node.children.length > 0;
+  }
+
+  private async getContentTree() {
+    let contentTree = await this.contentTreeService.getContentTree();
+    this.contentTree.set(new ArrayDataSource(contentTree));
+  }
 }
