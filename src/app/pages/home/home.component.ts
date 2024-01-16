@@ -4,14 +4,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'app-home',
   standalone: true,
   imports: [],
-  template: `
-    <p>
-      home works!
-    </p>
-  `,
+  template: ` <p>home works!</p> `,
   styles: ``,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeComponent {
-
-}
+export class HomeComponent {}

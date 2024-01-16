@@ -4,14 +4,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'app-content-detail',
   standalone: true,
   imports: [],
-  template: `
-    <p>
-      content-detail works!
-    </p>
-  `,
+  template: ` <p>content-detail works!</p> `,
   styles: ``,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContentDetailComponent {
-
-}
+export class ContentDetailComponent {}

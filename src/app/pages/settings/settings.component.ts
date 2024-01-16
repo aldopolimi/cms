@@ -4,14 +4,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'app-settings',
   standalone: true,
   imports: [],
-  template: `
-    <p>
-      settings works!
-    </p>
-  `,
+  template: ` <p>settings works!</p> `,
   styles: ``,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsComponent {
-
-}
+export class SettingsComponent {}

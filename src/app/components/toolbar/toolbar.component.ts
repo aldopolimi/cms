@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,7 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
       <button mat-icon-button aria-label="settings" routerLink="/settings">
         <mat-icon>settings</mat-icon>
       </button>
-      <button mat-icon-button aria-label="logout">
+      <button mat-icon-button aria-label="logout" (click)="logoutClick.emit()">
         <mat-icon>logout</mat-icon>
       </button>
     </mat-toolbar>
@@ -40,4 +35,5 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ToolbarComponent {
   @Output() menuClick = new EventEmitter();
+  @Output() logoutClick = new EventEmitter();
 }

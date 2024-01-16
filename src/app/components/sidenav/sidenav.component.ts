@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ArrayDataSource } from '@angular/cdk/collections';
 import { NestedTreeControl, CdkTreeModule } from '@angular/cdk/tree';
@@ -19,17 +14,12 @@ import { ContentManagementService } from '../../services/content-management.serv
   template: `
     <div class="app-tree-wrapper">
       <h4>Content management</h4>
-      <cdk-tree [dataSource]="contentTree()" [treeControl]="treeControl">
+      <cdk-tree [dataSource]="menuItems()" [treeControl]="treeControl">
         <cdk-nested-tree-node *cdkTreeNodeDef="let node" class="app-tree-node">
           <button mat-icon-button disabled></button>
           @if (node.path) {
             <a
-              [routerLink]="
-                '/content-list/' +
-                contentManagementService.locale() +
-                '/' +
-                node.path
-              "
+              [routerLink]="'/content-list/' + contentManagementService.locale() + '/' + node.path"
               routerLinkActive="active">
               {{ node.name }}
             </a>
@@ -39,18 +29,11 @@ import { ContentManagementService } from '../../services/content-management.serv
             </span>
           }
         </cdk-nested-tree-node>
-        <cdk-nested-tree-node
-          *cdkTreeNodeDef="let node; when: hasChild"
-          class="app-tree-node">
+        <cdk-nested-tree-node *cdkTreeNodeDef="let node; when: hasChild" class="app-tree-node">
           <div class="app-tree-node-inner">
-            <button
-              mat-icon-button
-              [attr.aria-label]="'toggle ' + node.name"
-              cdkTreeNodeToggle>
+            <button mat-icon-button [attr.aria-label]="'toggle ' + node.name" cdkTreeNodeToggle>
               <mat-icon class="mat-icon-rtl-mirror">
-                {{
-                  treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'
-                }}
+                {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
               </mat-icon>
             </button>
             {{ node.name }}
@@ -107,21 +90,16 @@ export class SidenavComponent {
   contentTreeService = inject(ContentTreeService);
   contentManagementService = inject(ContentManagementService);
 
-  contentTree = signal<ArrayDataSource<any>>([] as any);
   treeControl = new NestedTreeControl<any>(node => node.children);
+  menuItems = computed(() =>
+    this.contentTreeService.contentTree()
+      ? new ArrayDataSource(this.contentTreeService.contentTree()!.data)
+      : new ArrayDataSource([])
+  );
 
   constructor() {}
 
-  ngOnInit() {
-    this.getContentTree();
-  }
-
   hasChild(_: number, node: any) {
     return !!node.children && node.children.length > 0;
-  }
-
-  private async getContentTree() {
-    let contentTree = await this.contentTreeService.getContentTree();
-    this.contentTree.set(new ArrayDataSource(contentTree));
   }
 }

@@ -9,6 +9,16 @@ body {
   font-family: Roboto, 'Helvetica Neue', sans-serif;
 }
 
+.app-container {
+  min-height: 100svh;
+}
+
+.app-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .app-page {
   padding: 20px;
 }

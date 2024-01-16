@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatButtonModule } from '@angular/material/button';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { SidenavComponent } from './components/sidenav/sidenav.component';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +16,7 @@ import { SidenavComponent } from './components/sidenav/sidenav.component';
     ToolbarComponent,
     MatSidenavModule,
     SidenavComponent,
+    MatButtonModule,
   ],
   template: `
     <mat-sidenav-container class="app-container">
@@ -21,16 +24,25 @@ import { SidenavComponent } from './components/sidenav/sidenav.component';
         <app-sidenav></app-sidenav>
       </mat-sidenav>
       <mat-sidenav-content>
-        <app-toolbar (menuClick)="sidenav.toggle()"></app-toolbar>
+        @if (authService.isLoggedIn()) {
+          <app-toolbar (menuClick)="sidenav.toggle()" (logoutClick)="logout()"></app-toolbar>
+        }
+
         <router-outlet></router-outlet>
       </mat-sidenav-content>
     </mat-sidenav-container>
   `,
   styles: `
-    .app-container {
-      min-height: 100svh;
-    }
+
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {}
+export class AppComponent {
+  authService = inject(AuthService);
+  router = inject(Router);
+
+  async logout() {
+    await this.authService.logout();
+    this.router.navigate(['login']);
+  }
+}

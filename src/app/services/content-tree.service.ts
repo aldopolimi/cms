@@ -1,33 +1,72 @@
-import { Injectable, inject } from '@angular/core';
-import {
-  Firestore,
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  limit,
-  query,
-} from '@angular/fire/firestore';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Firestore, addDoc, collection, getDocs, limit, query } from '@angular/fire/firestore';
+import { ContentElement, ContentTree } from '../models/content-tree';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ContentTreeService {
-  firestore: Firestore = inject(Firestore);
-  collectionName = 'content-tree';
-  contentTreeCollection = collection(this.firestore, this.collectionName);
+  private firestore: Firestore = inject(Firestore);
+  private collectionName = 'content-tree';
+  private contentTreeCollection = collection(this.firestore, this.collectionName);
+
+  contentTree = signal<ContentTree | null>(null);
+  activeCollectionUrl = signal<string | null>('');
+  activeCollection = computed(() => this.getActiveCollection(this.activeCollectionUrl()));
 
   constructor() {}
 
-  async createContentTree(data: any): Promise<any> {
-    const documentReference = await addDoc(this.contentTreeCollection, data);
-    return documentReference;
-  }
+  // async createContentTree(data: any): Promise<any> {
+  //   const documentReference = await addDoc(this.contentTreeCollection, data);
+  //   return documentReference;
+  // }
 
-  async getContentTree(): Promise<any[]> {
+  async fetchContentTree(): Promise<void> {
+    console.log('🚀 ~ ContentTreeService ~ fetchContentTree ~ get content tree');
     const q = query(this.contentTreeCollection, limit(1));
     const results = (await getDocs(q)).docs;
-    const data = results[0]?.data()['data'] || [];
-    return data;
+    this.contentTree.set(results[0]?.data() as ContentTree);
+    console.log('🚀 ~ ContentTreeService ~ fetchContentTree ~ get content success');
+  }
+
+  private getActiveCollection(url: string | null): string | null {
+    console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ url: ', url);
+    if (!url) {
+      console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ', null);
+      return null;
+    }
+
+    const contentElements = this.contentTree()?.data;
+    if (!contentElements) {
+      console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ', null);
+      return null;
+    }
+    for (let element of contentElements) {
+      const collection = this.getCollectionByUrl(element, url);
+      if (collection) {
+        console.log(
+          '🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ',
+          collection
+        );
+        return collection;
+      }
+    }
+    console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ', null);
+    return null;
+  }
+
+  private getCollectionByUrl(element: ContentElement, url: string): string | null {
+    if (element.path === url) {
+      return element.collection ? element.collection : null;
+    }
+    if (element.children) {
+      for (const child of element.children) {
+        const collection = this.getCollectionByUrl(child, url);
+        if (collection) {
+          return collection;
+        }
+      }
+    }
+    return null;
   }
 }

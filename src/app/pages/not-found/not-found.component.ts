@@ -4,7 +4,11 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'app-not-found',
   standalone: true,
   imports: [],
-  template: ` <p>404 page not found</p> `,
+  template: `
+    <div class="app-container app-center">
+      <h1>404 page not found</h1>
+    </div>
+  `,
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
