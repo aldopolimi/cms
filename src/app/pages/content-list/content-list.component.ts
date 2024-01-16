@@ -11,14 +11,16 @@ import { ContentManagementService } from '../../services/content-management.serv
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTableModule } from '@angular/material/table';
 import { Subject, takeUntil } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ContentTreeService } from '../../services/content-tree.service';
+import { SpinnerDialogService } from '../../services/spinner-dialog.service';
 
 @Component({
   selector: 'app-content-list',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatSelectModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatSelectModule, MatTableModule],
   template: `
     <div class="app-page">
       <div class="locale-selector">
@@ -35,6 +37,17 @@ import { ContentTreeService } from '../../services/content-tree.service';
       </div>
       <div class="content-list-table">
         <h1>{{ contentTreeService.activeCollection() }}</h1>
+        <table mat-table [dataSource]="records()">
+          @for (column of columns; track column) {
+            <ng-container [matColumnDef]="column">
+              <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
+              <td mat-cell *matCellDef="let element">{{ element[column] }}</td>
+            </ng-container>
+          }
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
       </div>
     </div>
   `,
@@ -54,8 +67,14 @@ export class ContentListComponent implements OnDestroy {
   activatedRoute = inject(ActivatedRoute);
   contentTreeService = inject(ContentTreeService);
   contentManagementService = inject(ContentManagementService);
+  spinnerDialogService = inject(SpinnerDialogService);
 
+  // Form
   formControlLocale = new FormControl<string>(this.contentManagementService.locale());
+
+  // Signals
+  records = signal<any[]>([]);
+  columns: string[] = ['title', 'slug', 'status'];
 
   constructor() {
     this.activatedRoute.paramMap.pipe(takeUntil(this.destroyed$)).subscribe(data => {
@@ -79,8 +98,16 @@ export class ContentListComponent implements OnDestroy {
     });
   }
 
-  fetchRecords() {
-    this.contentManagementService.fetchRecords();
+  async fetchRecords() {
+    if (!this.contentTreeService.activeCollection()) {
+      return;
+    }
+    const dialogRef = this.spinnerDialogService.open();
+    const records = await this.contentManagementService.fetchRecords(
+      this.contentTreeService.activeCollection()!
+    );
+    this.records.set(records);
+    this.spinnerDialogService.close(dialogRef);
   }
 
   ngOnDestroy(): void {
