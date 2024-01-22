@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { ContentManagementService } from '../../services/content-management.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
@@ -11,6 +18,9 @@ import { SpinnerDialogService } from '../../services/spinner-dialog.service';
 import { MatButtonModule } from '@angular/material/button';
 import { Dialog } from '@angular/cdk/dialog';
 import { ContentListNewDialogComponent } from './components/content-list-new-dialog/content-list-new-dialog.component';
+import { DocumentData, QueryDocumentSnapshot } from '@angular/fire/firestore';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-content-list',
@@ -21,6 +31,8 @@ import { ContentListNewDialogComponent } from './components/content-list-new-dia
     MatSelectModule,
     MatTableModule,
     MatButtonModule,
+    MatPaginatorModule,
+    CommonModule,
   ],
   template: `
     <div class="app-page">
@@ -38,20 +50,34 @@ import { ContentListNewDialogComponent } from './components/content-list-new-dia
       </div>
       <div class="content-list-table">
         <div class="content-list-table__header">
-          <h1>{{ contentTreeService.activeCollection() }}</h1>
-          <button mat-raised-button color="primary" (click)="onNew()">New</button>
+          @if (contentTreeService.activeCollection()) {
+            <h1>{{ contentTreeService.activeCollection() }}</h1>
+            <button mat-raised-button color="primary" (click)="onNew()">New</button>
+          }
         </div>
         <table mat-table [dataSource]="records()">
           @for (column of columns; track column) {
             <ng-container [matColumnDef]="column">
               <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
-              <td mat-cell *matCellDef="let element">{{ element[column] }}</td>
+              <td mat-cell *matCellDef="let element">
+                @if (element[column].toDate) {
+                  {{ element[column].toDate() | date: 'medium' }}
+                } @else {
+                  {{ element[column] }}
+                }
+              </td>
             </ng-container>
           }
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
           <tr mat-row *matRowDef="let row; columns: columns"></tr>
         </table>
+
+        <mat-paginator
+          [length]="total()"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex()"
+          (page)="onPage($event)" />
       </div>
     </div>
   `,
@@ -88,10 +114,21 @@ export class ContentListComponent implements OnDestroy {
   formControlLocale = new FormControl<string>(this.contentManagementService.locale());
 
   // Signals
-  records = signal<any[]>([]);
-  columns: string[] = ['title', 'slug', 'status'];
+  private firebaseRecords = signal<QueryDocumentSnapshot<DocumentData, DocumentData>[]>([]);
+  records = computed(() => this.firebaseRecords().map(d => d.data()));
+  pageIndex = signal(0);
+  total = signal(0);
+
+  readonly columns: string[] = ['title', 'slug', 'status', 'createdAt'];
+  readonly pageSize = 5;
 
   constructor() {
+    this.formControlLocale.valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(locale => {
+      const urlSegments = this.activatedRoute.snapshot.url.slice(2).map(el => el.path);
+      const commands = ['content-list', locale, ...urlSegments];
+      this.router.navigate(commands);
+    });
+
     this.activatedRoute.paramMap.pipe(takeUntil(this.destroyed$)).subscribe(data => {
       const locale = data.get('locale')!;
       this.contentManagementService.setLocale(locale);
@@ -103,33 +140,92 @@ export class ContentListComponent implements OnDestroy {
           .map(el => el.path)
           .join('/');
       this.contentTreeService.activeCollectionUrl.set(url);
-      this.fetchRecords();
-    });
-
-    this.formControlLocale.valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(locale => {
-      const urlSegments = this.activatedRoute.snapshot.url.slice(2).map(el => el.path);
-      const commands = ['content-list', locale, ...urlSegments];
-      this.router.navigate(commands);
+      this.init();
     });
   }
 
-  async fetchRecords() {
+  init() {
+    // Reset signals
+    this.firebaseRecords.set([]);
+    this.pageIndex.set(0);
+    this.total.set(0);
+
+    this.fetchRecords();
+  }
+
+  async fetchRecords(
+    startAfterDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    endBeforeDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>
+  ) {
     if (!this.contentTreeService.activeCollection()) {
       return;
     }
-    const dialogRef = this.spinnerDialogService.open();
-    const records = await this.contentManagementService.fetchRecords(
-      this.contentTreeService.activeCollection()!
+    const spinnerRef = this.spinnerDialogService.open();
+
+    const collectionName = this.contentTreeService.activeCollection()!;
+    const { docs: records, count: total } = await this.contentManagementService.fetchRecords(
+      collectionName,
+      this.pageSize,
+      startAfterDocument,
+      endBeforeDocument
     );
-    this.records.set(records);
-    this.spinnerDialogService.close(dialogRef);
+    this.firebaseRecords.set(records);
+    this.total.set(total);
+
+    this.spinnerDialogService.close(spinnerRef);
+  }
+
+  private async addRecord(data: any) {
+    const spinnerRef = this.spinnerDialogService.open();
+
+    const collectionName = this.contentTreeService.activeCollection()!;
+    await this.contentManagementService.addRecord(collectionName, {
+      ...data,
+      slug: this.contentTreeService.activeCollectionUrl() + '/' + data.slug,
+      locale: this.contentManagementService.locale(),
+      active: true,
+      revision: 0,
+      status: 'draft',
+      createdAt: new Date(),
+    });
+
+    this.spinnerDialogService.close(spinnerRef);
   }
 
   onNew() {
     const dialogRef = this.dialog.open(ContentListNewDialogComponent, { width: '480px' });
-    dialogRef.closed.subscribe(data => {
-      console.log(data);
+    dialogRef.closed.subscribe(async (data: any) => {
+      await this.addRecord(data);
+      this.init();
     });
+  }
+
+  onPage(event: PageEvent) {
+    if (event.pageIndex > event.previousPageIndex!) {
+      this.onNext();
+    } else {
+      this.onPrev();
+    }
+  }
+
+  async onNext() {
+    this.pageIndex.update(p => p + 1);
+    try {
+      const startAfterDocument = [...this.firebaseRecords()].pop();
+      await this.fetchRecords(startAfterDocument);
+    } catch (error) {
+      this.pageIndex.update(p => p - 1);
+    }
+  }
+
+  async onPrev() {
+    this.pageIndex.update(p => p - 1);
+    try {
+      const endBeforeDocument = [...this.firebaseRecords()].shift();
+      await this.fetchRecords(undefined, endBeforeDocument);
+    } catch (error) {
+      this.pageIndex.update(p => p + 1);
+    }
   }
 
   ngOnDestroy(): void {

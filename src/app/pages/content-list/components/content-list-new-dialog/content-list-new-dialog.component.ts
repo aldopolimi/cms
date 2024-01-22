@@ -5,6 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { ContentTreeService } from '../../../../services/content-tree.service';
+import slugify from 'slugify';
 
 @Component({
   selector: 'app-content-list-new-dialog',
@@ -22,7 +24,13 @@ import { MatInputModule } from '@angular/material/input';
         <h1>Create new content</h1>
         <mat-form-field appearance="outline">
           <mat-label>title</mat-label>
-          <input formControlName="title" matInput #title placeholder="title" maxlength="255" />
+          <input
+            formControlName="title"
+            matInput
+            #title
+            placeholder="title"
+            maxlength="255"
+            (blur)="onTitleBlur(title.value)" />
           <mat-hint align="end">{{ title.value.length }}/255</mat-hint>
           @if (contentForm.get('title')!.invalid) {
             <mat-error>This field is required</mat-error>
@@ -31,7 +39,7 @@ import { MatInputModule } from '@angular/material/input';
         <mat-form-field appearance="outline">
           <mat-label>slug</mat-label>
           <input formControlName="slug" matInput #slug placeholder="slug" maxlength="255" />
-          <span matTextPrefix>racing/hypercar/</span>
+          <span matTextPrefix>{{ contentTreeService.activeCollectionUrl() }}/</span>
           <mat-hint align="end">{{ slug.value.length }}/255</mat-hint>
           @if (contentForm.get('slug')!.invalid) {
             <mat-error>This field is required</mat-error>
@@ -65,12 +73,20 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class ContentListNewDialogComponent {
   dialogRef = inject(DialogRef);
+  contentTreeService = inject(ContentTreeService);
   fb = inject(FormBuilder);
 
   contentForm = this.fb.group({
     title: ['', Validators.required],
     slug: ['', Validators.required],
   });
+
+  onTitleBlur(title: string) {
+    if (!this.contentForm.get('slug')!.value) {
+      const slug = slugify(title, { lower: true });
+      this.contentForm.get('slug')!.setValue(slug);
+    }
+  }
 
   onSubmit() {
     if (this.contentForm.invalid) {

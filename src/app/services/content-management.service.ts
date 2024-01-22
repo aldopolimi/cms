@@ -1,5 +1,24 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Firestore, collection, getDocs, query, where, and } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  getDocs,
+  query,
+  where,
+  and,
+  addDoc,
+  orderBy,
+  limit,
+  startAt,
+  startAfter,
+  DocumentReference,
+  DocumentData,
+  QueryDocumentSnapshot,
+  count,
+  getCountFromServer,
+  endBefore,
+  limitToLast,
+} from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -26,14 +45,46 @@ export class ContentManagementService {
     console.log('🚀 ~ ContentManagementService ~ setLocale ~ locale: ', locale);
   }
 
-  async fetchRecords(collectionName: string) {
+  async fetchRecords(
+    collectionName: string,
+    pageSize: number,
+    startAfterDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    endBeforeDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>
+  ): Promise<{ docs: QueryDocumentSnapshot<DocumentData, DocumentData>[]; count: number }> {
     console.log('🚀 ~ ContentManagementService ~ fetchRecords ~ collectionName: ', collectionName);
     const collectionRef = collection(this.firestore, collectionName);
-    const q = query(
+
+    let baseQuery = query(
       collectionRef,
       and(where('locale', '==', this.locale()), where('active', '==', true))
     );
-    const results = (await getDocs(q)).docs.map(d => d.data());
-    return results;
+
+    let q = query(baseQuery, orderBy('createdAt', 'desc'), limit(pageSize));
+    if (startAfterDocument) {
+      q = query(q, startAfter(startAfterDocument));
+    }
+    if (endBeforeDocument) {
+      q = query(q, limitToLast(pageSize), endBefore(endBeforeDocument));
+    }
+
+    const { docs } = await getDocs(q);
+    const { count } = (await getCountFromServer(baseQuery)).data();
+
+    console.log({ docs, count });
+
+    return { docs, count };
+  }
+
+  async addRecord(
+    collectionName: string,
+    data: any
+  ): Promise<DocumentReference<any, DocumentData>> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ addRecord ~ collectionName: ${collectionName}, data: `,
+      data
+    );
+    const collectionRef = collection(this.firestore, collectionName);
+    const documentReference = await addDoc(collectionRef, data);
+    return documentReference;
   }
 }

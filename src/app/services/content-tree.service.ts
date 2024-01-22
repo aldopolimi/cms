@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Firestore, addDoc, collection, getDocs, limit, query } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, limit, query } from '@angular/fire/firestore';
 import { ContentElement, ContentTree } from '../models/content-tree';
 
 @Injectable({
@@ -11,15 +11,10 @@ export class ContentTreeService {
   private contentTreeCollection = collection(this.firestore, this.collectionName);
 
   contentTree = signal<ContentTree | null>(null);
-  activeCollectionUrl = signal<string | null>('');
+  activeCollectionUrl = signal<string | null>(null);
   activeCollection = computed(() => this.getActiveCollection(this.activeCollectionUrl()));
 
   constructor() {}
-
-  // async createContentTree(data: any): Promise<any> {
-  //   const documentReference = await addDoc(this.contentTreeCollection, data);
-  //   return documentReference;
-  // }
 
   async fetchContentTree(): Promise<void> {
     console.log('🚀 ~ ContentTreeService ~ fetchContentTree ~ get content tree');
