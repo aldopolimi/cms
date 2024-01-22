@@ -195,8 +195,10 @@ export class ContentListComponent implements OnDestroy {
   onNew() {
     const dialogRef = this.dialog.open(ContentListNewDialogComponent, { width: '480px' });
     dialogRef.closed.subscribe(async (data: any) => {
-      await this.addRecord(data);
-      this.init();
+      if (data) {
+        await this.addRecord(data);
+        this.init();
+      }
     });
   }
 

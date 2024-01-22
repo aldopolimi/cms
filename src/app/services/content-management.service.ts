@@ -87,4 +87,27 @@ export class ContentManagementService {
     const documentReference = await addDoc(collectionRef, data);
     return documentReference;
   }
+
+  async isSlugUnique(collectionName: string, slug: string): Promise<boolean> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ isSlugUnique ~ collectionName: ${collectionName}, slug: ${slug}`
+    );
+    const collectionRef = collection(this.firestore, collectionName);
+
+    let q = query(
+      collectionRef,
+      and(
+        where('slug', '==', slug),
+        where('locale', '==', this.locale()),
+        where('active', '==', true)
+      )
+    );
+
+    const { count } = (await getCountFromServer(q)).data();
+
+    const isUnique = count === 0;
+    console.log(isUnique);
+
+    return isUnique;
+  }
 }
