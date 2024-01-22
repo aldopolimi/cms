@@ -9,15 +9,15 @@ import {
   addDoc,
   orderBy,
   limit,
-  startAt,
   startAfter,
   DocumentReference,
   DocumentData,
   QueryDocumentSnapshot,
-  count,
   getCountFromServer,
   endBefore,
   limitToLast,
+  deleteDoc,
+  updateDoc,
 } from '@angular/fire/firestore';
 
 @Injectable({
@@ -86,6 +86,22 @@ export class ContentManagementService {
     const collectionRef = collection(this.firestore, collectionName);
     const documentReference = await addDoc(collectionRef, data);
     return documentReference;
+  }
+
+  async updateRecord(
+    documentRef: DocumentReference<DocumentData, DocumentData>,
+    data: any
+  ): Promise<void> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ updateRecord ~ data: ${data}, documentRef: `,
+      documentRef
+    );
+    return updateDoc(documentRef, data);
+  }
+
+  async deleteRecord(documentRef: DocumentReference<DocumentData, DocumentData>): Promise<void> {
+    console.log(`🚀 ~ ContentManagementService ~ deleteRecord ~ documentRef: `, documentRef);
+    return deleteDoc(documentRef);
   }
 
   async isSlugUnique(collectionName: string, slug: string): Promise<boolean> {

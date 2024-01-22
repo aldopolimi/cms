@@ -21,6 +21,7 @@ import { ContentListNewDialogComponent } from './components/content-list-new-dia
 import { DocumentData, QueryDocumentSnapshot } from '@angular/fire/firestore';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-content-list',
@@ -33,6 +34,7 @@ import { CommonModule } from '@angular/common';
     MatButtonModule,
     MatPaginatorModule,
     CommonModule,
+    MatIconModule,
   ],
   template: `
     <div class="app-page">
@@ -56,18 +58,54 @@ import { CommonModule } from '@angular/common';
           }
         </div>
         <table mat-table [dataSource]="records()">
-          @for (column of columns; track column) {
-            <ng-container [matColumnDef]="column">
-              <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
-              <td mat-cell *matCellDef="let element">
-                @if (element[column].toDate) {
-                  {{ element[column].toDate() | date: 'medium' }}
-                } @else {
-                  {{ element[column] }}
-                }
-              </td>
-            </ng-container>
-          }
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+          </ng-container>
+          <ng-container matColumnDef="slug">
+            <th mat-header-cell *matHeaderCellDef>Slug</th>
+            <td mat-cell *matCellDef="let element">{{ element.slug }}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let element">{{ element.status }}</td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Created At</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.createdAt.toDate() | date: 'medium' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let element" class="actions">
+              @if (element.status === 'draft') {
+                <button
+                  mat-mini-fab
+                  color="primary"
+                  aria-label="public"
+                  (click)="onPublishRecord(element)">
+                  <mat-icon>public</mat-icon>
+                </button>
+              }
+              @if (element.status === 'published') {
+                <button
+                  mat-mini-fab
+                  color="accent"
+                  aria-label="draw"
+                  (click)="onDraftRecord(element)">
+                  <mat-icon>draw</mat-icon>
+                </button>
+              }
+              <button
+                mat-mini-fab
+                color="warn"
+                aria-label="delete"
+                (click)="onDeleteRecord(element)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
           <tr mat-row *matRowDef="let row; columns: columns"></tr>
@@ -77,7 +115,7 @@ import { CommonModule } from '@angular/common';
           [length]="total()"
           [pageSize]="pageSize"
           [pageIndex]="pageIndex()"
-          (page)="onPage($event)" />
+          (page)="onPage($event)"></mat-paginator>
       </div>
     </div>
   `,
@@ -94,6 +132,9 @@ import { CommonModule } from '@angular/common';
         padding: 10px 0;
 
         h1 { margin: 0 }
+      }
+      .actions button {
+        margin-right: 8px;
       }
     }
   `,
@@ -119,7 +160,7 @@ export class ContentListComponent implements OnDestroy {
   pageIndex = signal(0);
   total = signal(0);
 
-  readonly columns: string[] = ['title', 'slug', 'status', 'createdAt'];
+  readonly columns: string[] = ['title', 'slug', 'status', 'createdAt', 'actions'];
   readonly pageSize = 5;
 
   constructor() {
@@ -179,17 +220,64 @@ export class ContentListComponent implements OnDestroy {
     const spinnerRef = this.spinnerDialogService.open();
 
     const collectionName = this.contentTreeService.activeCollection()!;
-    await this.contentManagementService.addRecord(collectionName, {
-      ...data,
-      slug: this.contentTreeService.activeCollectionUrl() + '/' + data.slug,
-      locale: this.contentManagementService.locale(),
-      active: true,
-      revision: 0,
-      status: 'draft',
-      createdAt: new Date(),
-    });
+
+    try {
+      await this.contentManagementService.addRecord(collectionName, {
+        ...data,
+        slug: this.contentTreeService.activeCollectionUrl() + '/' + data.slug,
+        locale: this.contentManagementService.locale(),
+        active: true,
+        revision: 0,
+        status: 'draft',
+        createdAt: new Date(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
 
     this.spinnerDialogService.close(spinnerRef);
+  }
+
+  async onPublishRecord(record: DocumentData) {
+    const spinnerRef = this.spinnerDialogService.open();
+    try {
+      const i = this.records().findIndex(el => el === record);
+      const documentRef = this.firebaseRecords()[i].ref;
+      await this.contentManagementService.updateRecord(documentRef, { status: 'published' });
+    } catch (error) {
+      console.log(error);
+    }
+    this.spinnerDialogService.close(spinnerRef);
+
+    this.init();
+  }
+
+  async onDraftRecord(record: DocumentData) {
+    const spinnerRef = this.spinnerDialogService.open();
+    try {
+      const i = this.records().findIndex(el => el === record);
+      const documentRef = this.firebaseRecords()[i].ref;
+      await this.contentManagementService.updateRecord(documentRef, { status: 'draft' });
+    } catch (error) {
+      console.log(error);
+    }
+    this.spinnerDialogService.close(spinnerRef);
+
+    this.init();
+  }
+
+  async onDeleteRecord(record: DocumentData) {
+    const spinnerRef = this.spinnerDialogService.open();
+    try {
+      const i = this.records().findIndex(el => el === record);
+      const documentRef = this.firebaseRecords()[i].ref;
+      await this.contentManagementService.deleteRecord(documentRef);
+    } catch (error) {
+      console.log(error);
+    }
+    this.spinnerDialogService.close(spinnerRef);
+
+    this.init();
   }
 
   onNew() {
