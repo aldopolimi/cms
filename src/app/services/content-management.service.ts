@@ -88,6 +88,42 @@ export class ContentManagementService {
     return documentReference;
   }
 
+  async publishRecord(
+    collectionName: string,
+    documentRef: DocumentReference<DocumentData, DocumentData>,
+    data: any
+  ): Promise<DocumentReference<any, DocumentData>> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ publishRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+        data
+      )}, documentRef: `,
+      documentRef
+    );
+
+    const { revision } = data;
+
+    await updateDoc(documentRef, { active: false });
+    return this.addRecord(collectionName, { ...data, status: 'published', revision: revision + 1 });
+  }
+
+  async draftRecord(
+    collectionName: string,
+    documentRef: DocumentReference<DocumentData, DocumentData>,
+    data: any
+  ): Promise<DocumentReference<any, DocumentData>> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ draftRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+        data
+      )}, documentRef: `,
+      documentRef
+    );
+
+    const { revision } = data;
+
+    await updateDoc(documentRef, { active: false });
+    return this.addRecord(collectionName, { ...data, status: 'draft', revision: revision + 1 });
+  }
+
   async updateRecord(
     documentRef: DocumentReference<DocumentData, DocumentData>,
     data: any

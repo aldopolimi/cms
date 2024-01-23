@@ -1,4 +1,3 @@
-import { DialogRef } from '@angular/cdk/dialog';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -13,6 +12,13 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import {
+  MatDialogTitle,
+  MatDialogContent,
+  MatDialogActions,
+  MatDialogClose,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -45,12 +51,16 @@ function uniqueSlugValidator(
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
+    MatDialogTitle,
+    MatDialogContent,
+    MatDialogActions,
+    MatDialogClose,
   ],
   template: `
-    <mat-card>
-      <form [formGroup]="contentForm" (ngSubmit)="onSubmit()">
-        <h1>Create new content</h1>
-        <mat-form-field appearance="outline">
+    <h1 mat-dialog-title>New content</h1>
+    <form [formGroup]="contentForm" (ngSubmit)="onSubmit()">
+      <div mat-dialog-content>
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>title</mat-label>
           <input
             formControlName="title"
@@ -64,7 +74,7 @@ function uniqueSlugValidator(
             <mat-error>This field is required</mat-error>
           }
         </mat-form-field>
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>slug</mat-label>
           <input formControlName="slug" matInput #slug placeholder="slug" maxlength="255" />
           <span matTextPrefix>{{ contentTreeService.activeCollectionUrl() }}/</span>
@@ -78,18 +88,17 @@ function uniqueSlugValidator(
             <mat-hint>Checking slug . . .</mat-hint>
           }
         </mat-form-field>
-        <div class="actions">
-          <button mat-raised-button type="button" (click)="dialogRef.close()">CANCEL</button>
-          <button mat-raised-button type="submit" color="primary" [disabled]="!contentForm.valid">
-            SAVE
-          </button>
-        </div>
-      </form>
-    </mat-card>
+      </div>
+      <div mat-dialog-actions>
+        <button mat-button type="button" cdkFocusInitial mat-dialog-close>CANCEL</button>
+        <button mat-raised-button type="submit" color="primary" [disabled]="!contentForm.valid">
+          SAVE
+        </button>
+      </div>
+    </form>
   `,
   styles: `
-    form {
-      padding: 20px;
+    .mat-mdc-dialog-content {
       display: flex;
       flex-direction: column;
     }
@@ -97,17 +106,13 @@ function uniqueSlugValidator(
     mat-form-field {
       margin-bottom: 10px;
     }
-
-    .actions > button {
-      margin-right: 8px;
-    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContentListNewDialogComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();
 
-  dialogRef = inject(DialogRef);
+  dialogRef = inject(MatDialogRef);
   cdRef = inject(ChangeDetectorRef);
   contentTreeService = inject(ContentTreeService);
   contentManagementService = inject(ContentManagementService);

@@ -6,22 +6,23 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ContentManagementService } from '../../services/content-management.service';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { DocumentData, QueryDocumentSnapshot } from '@angular/fire/firestore';
 import { Subject, takeUntil } from 'rxjs';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ContentTreeService } from '../../services/content-tree.service';
 import { SpinnerDialogService } from '../../services/spinner-dialog.service';
-import { MatButtonModule } from '@angular/material/button';
-import { Dialog } from '@angular/cdk/dialog';
+import { ContentManagementService } from '../../services/content-management.service';
 import { ContentListNewDialogComponent } from './components/content-list-new-dialog/content-list-new-dialog.component';
-import { DocumentData, QueryDocumentSnapshot } from '@angular/fire/firestore';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-content-list',
@@ -70,6 +71,10 @@ import { MatIconModule } from '@angular/material/icon';
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let element">{{ element.status }}</td>
           </ng-container>
+          <ng-container matColumnDef="revision">
+            <th mat-header-cell *matHeaderCellDef>Revision</th>
+            <td mat-cell *matCellDef="let element">{{ element.revision }}</td>
+          </ng-container>
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Created At</th>
             <td mat-cell *matCellDef="let element">
@@ -84,24 +89,16 @@ import { MatIconModule } from '@angular/material/icon';
                   mat-mini-fab
                   color="primary"
                   aria-label="public"
-                  (click)="onPublishRecord(element)">
+                  (click)="onPublish(element)">
                   <mat-icon>public</mat-icon>
                 </button>
               }
               @if (element.status === 'published') {
-                <button
-                  mat-mini-fab
-                  color="accent"
-                  aria-label="draw"
-                  (click)="onDraftRecord(element)">
+                <button mat-mini-fab color="accent" aria-label="draw" (click)="onDraft(element)">
                   <mat-icon>draw</mat-icon>
                 </button>
               }
-              <button
-                mat-mini-fab
-                color="warn"
-                aria-label="delete"
-                (click)="onDeleteRecord(element)">
+              <button mat-mini-fab color="warn" aria-label="delete" (click)="onDelete(element)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
@@ -146,7 +143,7 @@ export class ContentListComponent implements OnDestroy {
   // Services
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
-  dialog = inject(Dialog);
+  dialog = inject(MatDialog);
   contentTreeService = inject(ContentTreeService);
   contentManagementService = inject(ContentManagementService);
   spinnerDialogService = inject(SpinnerDialogService);
@@ -160,7 +157,7 @@ export class ContentListComponent implements OnDestroy {
   pageIndex = signal(0);
   total = signal(0);
 
-  readonly columns: string[] = ['title', 'slug', 'status', 'createdAt', 'actions'];
+  readonly columns: string[] = ['title', 'slug', 'status', 'createdAt', 'revision', 'actions'];
   readonly pageSize = 5;
 
   constructor() {
@@ -185,6 +182,10 @@ export class ContentListComponent implements OnDestroy {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroyed$.next(true);
+  }
+
   init() {
     // Reset signals
     this.firebaseRecords.set([]);
@@ -194,7 +195,7 @@ export class ContentListComponent implements OnDestroy {
     this.fetchRecords();
   }
 
-  async fetchRecords(
+  private async fetchRecords(
     startAfterDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>,
     endBeforeDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>
   ) {
@@ -214,6 +215,16 @@ export class ContentListComponent implements OnDestroy {
     this.total.set(total);
 
     this.spinnerDialogService.close(spinnerRef);
+  }
+
+  onNew() {
+    const dialogRef = this.dialog.open(ContentListNewDialogComponent, { width: '480px' });
+    dialogRef.afterClosed().subscribe(async (data: any) => {
+      if (data) {
+        await this.addRecord(data);
+        this.init();
+      }
+    });
   }
 
   private async addRecord(data: any) {
@@ -238,35 +249,75 @@ export class ContentListComponent implements OnDestroy {
     this.spinnerDialogService.close(spinnerRef);
   }
 
-  async onPublishRecord(record: DocumentData) {
+  onPublish(record: DocumentData) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '480px',
+      data: { title: 'Publish content', message: `Are you sure to publish "${record['slug']}" ?` },
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(async (confirm: any) => {
+      if (confirm) {
+        await this.publishRecord(record);
+        this.init();
+      }
+    });
+  }
+
+  private async publishRecord(record: DocumentData) {
     const spinnerRef = this.spinnerDialogService.open();
     try {
       const i = this.records().findIndex(el => el === record);
       const documentRef = this.firebaseRecords()[i].ref;
-      await this.contentManagementService.updateRecord(documentRef, { status: 'published' });
+      const collectionName = this.contentTreeService.activeCollection()!;
+      await this.contentManagementService.publishRecord(collectionName, documentRef, record);
     } catch (error) {
       console.log(error);
     }
     this.spinnerDialogService.close(spinnerRef);
-
-    this.init();
   }
 
-  async onDraftRecord(record: DocumentData) {
+  onDraft(record: DocumentData) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '480px',
+      data: { title: 'Draft content', message: `Are you sure to draft "${record['slug']}" ?` },
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(async (confirm: any) => {
+      if (confirm) {
+        await this.draftRecord(record);
+        this.init();
+      }
+    });
+  }
+
+  private async draftRecord(record: DocumentData) {
     const spinnerRef = this.spinnerDialogService.open();
     try {
       const i = this.records().findIndex(el => el === record);
       const documentRef = this.firebaseRecords()[i].ref;
-      await this.contentManagementService.updateRecord(documentRef, { status: 'draft' });
+      const collectionName = this.contentTreeService.activeCollection()!;
+      await this.contentManagementService.draftRecord(collectionName, documentRef, record);
     } catch (error) {
       console.log(error);
     }
     this.spinnerDialogService.close(spinnerRef);
-
-    this.init();
   }
 
-  async onDeleteRecord(record: DocumentData) {
+  onDelete(record: DocumentData) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '480px',
+      data: { title: 'Delete content', message: `Are you sure to delete "${record['slug']}" ?` },
+      disableClose: true,
+    });
+    dialogRef.afterClosed().subscribe(async (confirm: any) => {
+      if (confirm) {
+        await this.deleteRecord(record);
+        this.init();
+      }
+    });
+  }
+
+  private async deleteRecord(record: DocumentData) {
     const spinnerRef = this.spinnerDialogService.open();
     try {
       const i = this.records().findIndex(el => el === record);
@@ -276,18 +327,6 @@ export class ContentListComponent implements OnDestroy {
       console.log(error);
     }
     this.spinnerDialogService.close(spinnerRef);
-
-    this.init();
-  }
-
-  onNew() {
-    const dialogRef = this.dialog.open(ContentListNewDialogComponent, { width: '480px' });
-    dialogRef.closed.subscribe(async (data: any) => {
-      if (data) {
-        await this.addRecord(data);
-        this.init();
-      }
-    });
   }
 
   onPage(event: PageEvent) {
@@ -298,7 +337,7 @@ export class ContentListComponent implements OnDestroy {
     }
   }
 
-  async onNext() {
+  private async onNext() {
     this.pageIndex.update(p => p + 1);
     try {
       const startAfterDocument = [...this.firebaseRecords()].pop();
@@ -308,7 +347,7 @@ export class ContentListComponent implements OnDestroy {
     }
   }
 
-  async onPrev() {
+  private async onPrev() {
     this.pageIndex.update(p => p - 1);
     try {
       const endBeforeDocument = [...this.firebaseRecords()].shift();
@@ -316,9 +355,5 @@ export class ContentListComponent implements OnDestroy {
     } catch (error) {
       this.pageIndex.update(p => p + 1);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroyed$.next(true);
   }
 }
