@@ -3,7 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { inject } from '@angular/core';
 
 export const isLoggedInGuard: CanActivateFn = (route, segments) => {
-  console.log('🚀 ~ isLoggedInGuard ~ route.url: ', '/' + route.url.map(el => el.path).join('/'));
+  console.log(`🚀 ~ isLoggedInGuard ~ route.url: /${route.url.map(el => el.path).join('/')}`);
   const router = inject(Router);
   const authService = inject(AuthService);
 

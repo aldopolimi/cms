@@ -14,7 +14,7 @@ import { ContentTreeService } from '../../services/content-tree.service';
   template: `
     <div class="app-container app-center">
       @if (status() === 'idle') {
-        <button mat-raised-button (click)="login()">
+        <button mat-flat-button (click)="login()">
           Login with Google <mat-icon>login</mat-icon>
         </button>
       } @else if (status() === 'pending') {

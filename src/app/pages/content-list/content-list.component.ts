@@ -55,7 +55,9 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
         <div class="content-list-table__header">
           @if (contentTreeService.activeCollection()) {
             <h1>{{ contentTreeService.activeCollection() }}</h1>
-            <button mat-raised-button color="primary" (click)="onNew()">New</button>
+            <button mat-flat-button color="primary" (click)="onNew()">
+              <mat-icon>add</mat-icon> New
+            </button>
           }
         </div>
         <table mat-table [dataSource]="records()">
@@ -69,11 +71,17 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
           </ng-container>
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let element">{{ element.status }}</td>
+            <td mat-cell *matCellDef="let element">
+              {{ element.status }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="revision">
             <th mat-header-cell *matHeaderCellDef>Revision</th>
-            <td mat-cell *matCellDef="let element">{{ element.revision }}</td>
+            <td mat-cell *matCellDef="let element">
+              <a mat-button color="accent" href="javascript:void(0)" (click)="onRevision(element)">
+                {{ element.revision }}
+              </a>
+            </td>
           </ng-container>
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Created At</th>
@@ -86,20 +94,20 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
             <td mat-cell *matCellDef="let element" class="actions">
               @if (element.status === 'draft') {
                 <button
-                  mat-mini-fab
-                  color="primary"
+                  mat-flat-button
+                  color="accent"
                   aria-label="public"
                   (click)="onPublish(element)">
-                  <mat-icon>public</mat-icon>
+                  <mat-icon>publish</mat-icon> PUBLISH
                 </button>
               }
               @if (element.status === 'published') {
-                <button mat-mini-fab color="accent" aria-label="draw" (click)="onDraft(element)">
-                  <mat-icon>draw</mat-icon>
+                <button mat-flat-button color="accent" aria-label="draw" (click)="onDraft(element)">
+                  <mat-icon>draw</mat-icon> DRAFT
                 </button>
               }
-              <button mat-mini-fab color="warn" aria-label="delete" (click)="onDelete(element)">
-                <mat-icon>delete</mat-icon>
+              <button mat-flat-button color="warn" aria-label="delete" (click)="onDelete(element)">
+                <mat-icon>delete</mat-icon> DELETE
               </button>
             </td>
           </ng-container>
@@ -247,6 +255,15 @@ export class ContentListComponent implements OnDestroy {
     }
 
     this.spinnerDialogService.close(spinnerRef);
+  }
+
+  async onRevision(record: DocumentData) {
+    const collectionName = this.contentTreeService.activeCollection()!;
+    const { docs } = await this.contentManagementService.fetchLastRecordRevisions(
+      collectionName,
+      record['slug']
+    );
+    // TODO
   }
 
   onPublish(record: DocumentData) {

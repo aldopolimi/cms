@@ -27,26 +27,25 @@ export class ContentTreeService {
   private getActiveCollection(url: string | null): string | null {
     console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ url: ', url);
     if (!url) {
-      console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ', null);
+      console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: null');
       return null;
     }
 
     const contentElements = this.contentTree()?.data;
     if (!contentElements) {
-      console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ', null);
+      console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: null');
       return null;
     }
     for (let element of contentElements) {
       const collection = this.getCollectionByUrl(element, url);
       if (collection) {
         console.log(
-          '🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ',
-          collection
+          `🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ${collection}`
         );
         return collection;
       }
     }
-    console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: ', null);
+    console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: null');
     return null;
   }
 

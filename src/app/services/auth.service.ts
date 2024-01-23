@@ -28,7 +28,7 @@ export class AuthService {
     const _user = await firstValueFrom(user(this.auth));
     this.user.set(_user);
 
-    console.log('🚀 ~ AuthService ~ initUser ~ user: ', _user);
+    console.log(`🚀 ~ AuthService ~ initUser ~ user: ${JSON.stringify(_user)}`);
     return _user;
   }
 

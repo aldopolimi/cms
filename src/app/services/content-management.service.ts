@@ -31,8 +31,7 @@ export class ContentManagementService {
   constructor() {
     let locale = localStorage.getItem('locale');
     console.log(
-      '🚀 ~ ContentManagementService ~ constructor ~ retreive locale from localStorage: ',
-      locale
+      `🚀 ~ ContentManagementService ~ constructor ~ retreive locale from localStorage: ${locale}`
     );
     if (locale) {
       this.setLocale(locale);
@@ -42,7 +41,7 @@ export class ContentManagementService {
   setLocale(locale: string): void {
     localStorage.setItem('locale', locale);
     this.locale.set(locale);
-    console.log('🚀 ~ ContentManagementService ~ setLocale ~ locale: ', locale);
+    console.log(`🚀 ~ ContentManagementService ~ setLocale ~ locale: ${locale}`);
   }
 
   async fetchRecords(
@@ -51,7 +50,11 @@ export class ContentManagementService {
     startAfterDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>,
     endBeforeDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>
   ): Promise<{ docs: QueryDocumentSnapshot<DocumentData, DocumentData>[]; count: number }> {
-    console.log('🚀 ~ ContentManagementService ~ fetchRecords ~ collectionName: ', collectionName);
+    console.log(
+      `🚀 ~ ContentManagementService ~ fetchRecords ~ collectionName: ${collectionName}, pageSize: ${pageSize}, startAfterDocument: ${JSON.stringify(
+        startAfterDocument
+      )}, endBeforeDocument: ${endBeforeDocument}`
+    );
     const collectionRef = collection(this.firestore, collectionName);
 
     let baseQuery = query(
@@ -75,13 +78,38 @@ export class ContentManagementService {
     return { docs, count };
   }
 
+  async fetchLastRecordRevisions(
+    collectionName: string,
+    slug: string,
+    qty = 2
+  ): Promise<{ docs: QueryDocumentSnapshot<DocumentData, DocumentData>[] }> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ fetchAllRecordRevisions ~ collectionName: ${collectionName}, slug: ${slug}`
+    );
+    const collectionRef = collection(this.firestore, collectionName);
+
+    let q = query(
+      collectionRef,
+      and(where('slug', '==', slug), where('locale', '==', this.locale())),
+      orderBy('createdAt', 'asc'),
+      limit(qty)
+    );
+
+    const { docs } = await getDocs(q);
+
+    console.log({ docs });
+
+    return { docs };
+  }
+
   async addRecord(
     collectionName: string,
     data: any
   ): Promise<DocumentReference<any, DocumentData>> {
     console.log(
-      `🚀 ~ ContentManagementService ~ addRecord ~ collectionName: ${collectionName}, data: `,
-      data
+      `🚀 ~ ContentManagementService ~ addRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+        data
+      )}`
     );
     const collectionRef = collection(this.firestore, collectionName);
     const documentReference = await addDoc(collectionRef, data);
@@ -96,8 +124,7 @@ export class ContentManagementService {
     console.log(
       `🚀 ~ ContentManagementService ~ publishRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
         data
-      )}, documentRef: `,
-      documentRef
+      )}, documentRef: ${JSON.stringify(documentRef)}`
     );
 
     const { revision } = data;
@@ -114,8 +141,7 @@ export class ContentManagementService {
     console.log(
       `🚀 ~ ContentManagementService ~ draftRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
         data
-      )}, documentRef: `,
-      documentRef
+      )}, documentRef: ${JSON.stringify(documentRef)}`
     );
 
     const { revision } = data;
@@ -129,14 +155,17 @@ export class ContentManagementService {
     data: any
   ): Promise<void> {
     console.log(
-      `🚀 ~ ContentManagementService ~ updateRecord ~ data: ${data}, documentRef: `,
-      documentRef
+      `🚀 ~ ContentManagementService ~ updateRecord ~ data: ${data}, documentRef: ${JSON.stringify(
+        documentRef
+      )}`
     );
     return updateDoc(documentRef, data);
   }
 
   async deleteRecord(documentRef: DocumentReference<DocumentData, DocumentData>): Promise<void> {
-    console.log(`🚀 ~ ContentManagementService ~ deleteRecord ~ documentRef: `, documentRef);
+    console.log(
+      `🚀 ~ ContentManagementService ~ deleteRecord ~ documentRef: ${JSON.stringify(documentRef)}`
+    );
     return deleteDoc(documentRef);
   }
 

@@ -34,9 +34,7 @@ import { AuthService } from './services/auth.service';
       </mat-sidenav-content>
     </mat-sidenav-container>
   `,
-  styles: `
-
-  `,
+  styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {

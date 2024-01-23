@@ -91,7 +91,7 @@ function uniqueSlugValidator(
       </div>
       <div mat-dialog-actions>
         <button mat-button type="button" cdkFocusInitial mat-dialog-close>CANCEL</button>
-        <button mat-raised-button type="submit" color="primary" [disabled]="!contentForm.valid">
+        <button mat-flat-button type="submit" color="primary" [disabled]="!contentForm.valid">
           SAVE
         </button>
       </div>

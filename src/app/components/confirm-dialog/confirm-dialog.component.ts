@@ -21,7 +21,7 @@ import {
     </div>
     <div mat-dialog-actions>
       <button mat-button type="button" [mat-dialog-close]="false">CANCEL</button>
-      <button mat-raised-button type="button" color="primary" [mat-dialog-close]="true">
+      <button mat-flat-button type="button" color="primary" [mat-dialog-close]="true">
         CONFIRM
       </button>
     </div>
