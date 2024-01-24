@@ -222,7 +222,7 @@ export class ContentManagementService {
     console.log(
       `🚀 ~ ContentManagementService ~ delete ~ documentRef: ${JSON.stringify(documentRef)}`
     );
-    return deleteDoc(documentRef);
+    await updateDoc(documentRef, { active: false });
   }
 
   async isSlugUnique(collectionName: string, slug: string): Promise<boolean> {
