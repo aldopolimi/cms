@@ -21,4 +21,31 @@ body {
 
 .app-page {
   padding: 20px;
+
+  &--flex {
+    display: flex;
+    flex-direction: column;
+
+    @media screen and (min-width: 1366px) {
+      flex-direction: row;
+    }
+  }
+
+  &__side {
+    flex: 1;
+    padding: 10px 0;
+    @media screen and (min-width: 1366px) {
+      padding: 0 10px;
+    }
+  }
+
+  &__centered {
+    flex: 1;
+    padding: 10px 0;
+
+    @media screen and (min-width: 1366px) {
+      padding: 0 10px;
+      flex: 3;
+    }
+  }
 }

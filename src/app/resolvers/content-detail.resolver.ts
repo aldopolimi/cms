@@ -20,7 +20,9 @@ export const contentDetailResolver: ResolveFn<
       .slice(2, -1)
       .map(el => el.path)
       .join('/');
-  const collectionName = contentTreeService.getActiveCollection(url);
+
+  contentTreeService.activeCollectionUrl.set(url);
+  const collectionName = contentTreeService.activeCollection()!;
 
   if (!collectionName) {
     snackBar.open('Something went wrong, please try again', '', { duration: 2000 });

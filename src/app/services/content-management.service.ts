@@ -153,7 +153,13 @@ export class ContentManagementService {
     const { revision } = data;
 
     await updateDoc(documentRef, { active: false });
-    return this.create(collectionName, { ...data, status: 'published', revision: revision + 1 });
+    return this.create(collectionName, {
+      ...data,
+      status: 'published',
+      publishedAt: new Date(),
+      revision: revision + 1,
+      updatedAt: new Date(),
+    });
   }
 
   async draft(
@@ -170,7 +176,34 @@ export class ContentManagementService {
     const { revision } = data;
 
     await updateDoc(documentRef, { active: false });
-    return this.create(collectionName, { ...data, status: 'draft', revision: revision + 1 });
+    return this.create(collectionName, {
+      ...data,
+      status: 'draft',
+      publishedAt: null,
+      revision: revision + 1,
+      updatedAt: new Date(),
+    });
+  }
+
+  async save(
+    collectionName: string,
+    documentRef: DocumentReference<DocumentData, DocumentData>,
+    data: any
+  ): Promise<DocumentReference<any, DocumentData>> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ save ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+        data
+      )}, documentRef: ${JSON.stringify(documentRef)}`
+    );
+
+    const { revision } = data;
+
+    await updateDoc(documentRef, { active: false });
+    return this.create(collectionName, {
+      ...data,
+      revision: revision + 1,
+      updatedAt: new Date(),
+    });
   }
 
   async update(

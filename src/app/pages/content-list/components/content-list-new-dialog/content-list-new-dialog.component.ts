@@ -5,13 +5,7 @@ import {
   OnDestroy,
   inject,
 } from '@angular/core';
-import {
-  AbstractControl,
-  AsyncValidatorFn,
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   MatDialogTitle,
   MatDialogContent,
@@ -20,34 +14,19 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ContentTreeService } from '../../../../services/content-tree.service';
 import slugify from 'slugify';
 import { ContentManagementService } from '../../../../services/content-management.service';
 import { Subject, takeUntil } from 'rxjs';
-
-function uniqueSlugValidator(
-  contentTreeService: ContentTreeService,
-  contentManagementService: ContentManagementService
-): AsyncValidatorFn {
-  return async (control: AbstractControl) => {
-    const collectionName = contentTreeService.activeCollection()!;
-    const activeCollectionUrl = contentTreeService.activeCollectionUrl()!;
-    const slug = activeCollectionUrl + '/' + control.value;
-
-    const isSlugUnique = await contentManagementService.isSlugUnique(collectionName, slug);
-    return isSlugUnique ? null : { slugDuplicated: true };
-  };
-}
+import { uniqueSlugValidator } from '../../../../validators/unique-slug.validator';
 
 @Component({
   selector: 'app-content-list-new-dialog',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    MatCardModule,
     MatInputModule,
     MatFormFieldModule,
     MatButtonModule,
@@ -61,7 +40,7 @@ function uniqueSlugValidator(
     <form [formGroup]="contentForm" (ngSubmit)="onSubmit()">
       <div mat-dialog-content>
         <mat-form-field appearance="outline" floatLabel="always">
-          <mat-label>title</mat-label>
+          <mat-label>Title</mat-label>
           <input
             formControlName="title"
             matInput
@@ -75,7 +54,7 @@ function uniqueSlugValidator(
           }
         </mat-form-field>
         <mat-form-field appearance="outline" floatLabel="always">
-          <mat-label>slug</mat-label>
+          <mat-label>Slug</mat-label>
           <input formControlName="slug" matInput #slug placeholder="slug" maxlength="255" />
           <span matTextPrefix>{{ contentTreeService.activeCollectionUrl() }}/</span>
           <mat-hint align="end">{{ slug.value.length }}/255</mat-hint>
