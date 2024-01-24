@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { isLoggedInGuard } from './guards/is-logged-in.guard';
 import { isNotLoggedInGuard } from './guards/is-not-logged-in.guard';
+import { contentDetailResolver } from './resolvers/content-detail.resolver';
 
 export const routes: Routes = [
   {
@@ -46,18 +47,28 @@ export const routes: Routes = [
   {
     path: 'content-detail/:locale/:group1/:id',
     canActivate: [isLoggedInGuard],
+    resolve: { content: contentDetailResolver },
     loadComponent: () =>
       import('./pages/content-detail/content-detail.component').then(c => c.ContentDetailComponent),
   },
   {
     path: 'content-detail/:locale/:group1/:group2/:id',
     canActivate: [isLoggedInGuard],
+    resolve: { content: contentDetailResolver },
     loadComponent: () =>
       import('./pages/content-detail/content-detail.component').then(c => c.ContentDetailComponent),
   },
   {
     path: 'content-detail/:locale/:group1/:group2/:group3/:id',
     canActivate: [isLoggedInGuard],
+    resolve: { content: contentDetailResolver },
+    loadComponent: () =>
+      import('./pages/content-detail/content-detail.component').then(c => c.ContentDetailComponent),
+  },
+  {
+    path: 'content-detail/:locale/:group1/:group2/:group3/:group4/:id',
+    canActivate: [isLoggedInGuard],
+    resolve: { content: contentDetailResolver },
     loadComponent: () =>
       import('./pages/content-detail/content-detail.component').then(c => c.ContentDetailComponent),
   },

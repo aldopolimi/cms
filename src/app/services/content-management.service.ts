@@ -18,6 +18,8 @@ import {
   limitToLast,
   deleteDoc,
   updateDoc,
+  getDoc,
+  getDocFromServer,
 } from '@angular/fire/firestore';
 
 @Injectable({
@@ -44,14 +46,14 @@ export class ContentManagementService {
     console.log(`🚀 ~ ContentManagementService ~ setLocale ~ locale: ${locale}`);
   }
 
-  async fetchRecords(
+  async find(
     collectionName: string,
     pageSize: number,
     startAfterDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>,
     endBeforeDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>
   ): Promise<{ docs: QueryDocumentSnapshot<DocumentData, DocumentData>[]; count: number }> {
     console.log(
-      `🚀 ~ ContentManagementService ~ fetchRecords ~ collectionName: ${collectionName}, pageSize: ${pageSize}, startAfterDocument: ${JSON.stringify(
+      `🚀 ~ ContentManagementService ~ find ~ collectionName: ${collectionName}, pageSize: ${pageSize}, startAfterDocument: ${JSON.stringify(
         startAfterDocument
       )}, endBeforeDocument: ${endBeforeDocument}`
     );
@@ -78,7 +80,31 @@ export class ContentManagementService {
     return { docs, count };
   }
 
-  async fetchLastRecordRevisions(
+  async findOneBySlug(
+    collectionName: string,
+    slug: string
+  ): Promise<QueryDocumentSnapshot<DocumentData, DocumentData> | null> {
+    console.log(
+      `🚀 ~ ContentManagementService ~ findOneBySlug ~ collectionName: ${collectionName}, slug: ${slug}`
+    );
+    const collectionRef = collection(this.firestore, collectionName);
+
+    let q = query(
+      collectionRef,
+      and(
+        where('slug', '==', slug),
+        where('locale', '==', this.locale()),
+        where('active', '==', true)
+      ),
+      limit(1)
+    );
+
+    const { docs } = await getDocs(q);
+
+    return docs[0] ? docs[0] : null;
+  }
+
+  async findLastRevisions(
     collectionName: string,
     slug: string,
     qty = 2
@@ -102,12 +128,9 @@ export class ContentManagementService {
     return { docs };
   }
 
-  async addRecord(
-    collectionName: string,
-    data: any
-  ): Promise<DocumentReference<any, DocumentData>> {
+  async create(collectionName: string, data: any): Promise<DocumentReference<any, DocumentData>> {
     console.log(
-      `🚀 ~ ContentManagementService ~ addRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+      `🚀 ~ ContentManagementService ~ create ~ collectionName: ${collectionName}, data: ${JSON.stringify(
         data
       )}`
     );
@@ -116,13 +139,13 @@ export class ContentManagementService {
     return documentReference;
   }
 
-  async publishRecord(
+  async publish(
     collectionName: string,
     documentRef: DocumentReference<DocumentData, DocumentData>,
     data: any
   ): Promise<DocumentReference<any, DocumentData>> {
     console.log(
-      `🚀 ~ ContentManagementService ~ publishRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+      `🚀 ~ ContentManagementService ~ publish ~ collectionName: ${collectionName}, data: ${JSON.stringify(
         data
       )}, documentRef: ${JSON.stringify(documentRef)}`
     );
@@ -130,16 +153,16 @@ export class ContentManagementService {
     const { revision } = data;
 
     await updateDoc(documentRef, { active: false });
-    return this.addRecord(collectionName, { ...data, status: 'published', revision: revision + 1 });
+    return this.create(collectionName, { ...data, status: 'published', revision: revision + 1 });
   }
 
-  async draftRecord(
+  async draft(
     collectionName: string,
     documentRef: DocumentReference<DocumentData, DocumentData>,
     data: any
   ): Promise<DocumentReference<any, DocumentData>> {
     console.log(
-      `🚀 ~ ContentManagementService ~ draftRecord ~ collectionName: ${collectionName}, data: ${JSON.stringify(
+      `🚀 ~ ContentManagementService ~ draft ~ collectionName: ${collectionName}, data: ${JSON.stringify(
         data
       )}, documentRef: ${JSON.stringify(documentRef)}`
     );
@@ -147,24 +170,24 @@ export class ContentManagementService {
     const { revision } = data;
 
     await updateDoc(documentRef, { active: false });
-    return this.addRecord(collectionName, { ...data, status: 'draft', revision: revision + 1 });
+    return this.create(collectionName, { ...data, status: 'draft', revision: revision + 1 });
   }
 
-  async updateRecord(
+  async update(
     documentRef: DocumentReference<DocumentData, DocumentData>,
     data: any
   ): Promise<void> {
     console.log(
-      `🚀 ~ ContentManagementService ~ updateRecord ~ data: ${data}, documentRef: ${JSON.stringify(
+      `🚀 ~ ContentManagementService ~ update ~ data: ${data}, documentRef: ${JSON.stringify(
         documentRef
       )}`
     );
     return updateDoc(documentRef, data);
   }
 
-  async deleteRecord(documentRef: DocumentReference<DocumentData, DocumentData>): Promise<void> {
+  async delete(documentRef: DocumentReference<DocumentData, DocumentData>): Promise<void> {
     console.log(
-      `🚀 ~ ContentManagementService ~ deleteRecord ~ documentRef: ${JSON.stringify(documentRef)}`
+      `🚀 ~ ContentManagementService ~ delete ~ documentRef: ${JSON.stringify(documentRef)}`
     );
     return deleteDoc(documentRef);
   }

@@ -24,7 +24,7 @@ export class ContentTreeService {
     console.log('🚀 ~ ContentTreeService ~ fetchContentTree ~ get content success');
   }
 
-  private getActiveCollection(url: string | null): string | null {
+  getActiveCollection(url: string | null): string | null {
     console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ url: ', url);
     if (!url) {
       console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: null');

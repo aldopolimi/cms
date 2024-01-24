@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { DocumentData, QueryDocumentSnapshot } from '@angular/fire/firestore';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, lastValueFrom, takeUntil } from 'rxjs';
 import { ContentTreeService } from '../../services/content-tree.service';
 import { SpinnerDialogService } from '../../services/spinner-dialog.service';
 import { ContentManagementService } from '../../services/content-management.service';
@@ -36,11 +36,12 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     MatPaginatorModule,
     CommonModule,
     MatIconModule,
+    RouterModule,
   ],
   template: `
     <div class="app-page">
       <div class="locale-selector">
-        <mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>i18n</mat-label>
           <mat-select [formControl]="formControlLocale">
             <mat-option value="it-IT">Italiano</mat-option>
@@ -56,7 +57,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
           @if (contentTreeService.activeCollection()) {
             <h1>{{ contentTreeService.activeCollection() }}</h1>
             <button mat-flat-button color="primary" (click)="onNew()">
-              <mat-icon>add</mat-icon> New
+              <mat-icon>add_circle_outline</mat-icon> NEW
             </button>
           }
         </div>
@@ -86,29 +87,48 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>Created At</th>
             <td mat-cell *matCellDef="let element">
-              {{ element.createdAt.toDate() | date: 'medium' }}
+              {{ element.createdAt.toDate() | date: "dd MMM yyyy '-' HH:mm:ss z" }}
             </td>
           </ng-container>
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element" class="actions">
-              @if (element.status === 'draft') {
+              <div>
+                <a
+                  mat-flat-button
+                  color="primary"
+                  aria-label="edit"
+                  [routerLink]="
+                    '/content-detail/' + contentManagementService.locale() + '/' + element.slug
+                  ">
+                  <mat-icon>edit</mat-icon> EDIT
+                </a>
+                @if (element.status === 'draft') {
+                  <button
+                    mat-flat-button
+                    color="accent"
+                    aria-label="public"
+                    (click)="onPublish(element)">
+                    <mat-icon>publish</mat-icon> PUBLISH
+                  </button>
+                }
+                @if (element.status === 'published') {
+                  <button
+                    mat-flat-button
+                    color="accent"
+                    aria-label="draw"
+                    (click)="onDraft(element)">
+                    <mat-icon>drafts</mat-icon> DRAFT&nbsp;&nbsp;&nbsp;
+                  </button>
+                }
                 <button
                   mat-flat-button
-                  color="accent"
-                  aria-label="public"
-                  (click)="onPublish(element)">
-                  <mat-icon>publish</mat-icon> PUBLISH
+                  color="warn"
+                  aria-label="delete"
+                  (click)="onDelete(element)">
+                  <mat-icon>delete_outline</mat-icon> DELETE
                 </button>
-              }
-              @if (element.status === 'published') {
-                <button mat-flat-button color="accent" aria-label="draw" (click)="onDraft(element)">
-                  <mat-icon>draw</mat-icon> DRAFT
-                </button>
-              }
-              <button mat-flat-button color="warn" aria-label="delete" (click)="onDelete(element)">
-                <mat-icon>delete</mat-icon> DELETE
-              </button>
+              </div>
             </td>
           </ng-container>
 
@@ -138,8 +158,12 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 
         h1 { margin: 0 }
       }
-      .actions button {
-        margin-right: 8px;
+      .actions > div {
+        display: flex;
+        justify-content: flex-end;
+        button {
+          margin-left: 8px;
+        }
       }
     }
   `,
@@ -166,7 +190,7 @@ export class ContentListComponent implements OnDestroy {
   total = signal(0);
 
   readonly columns: string[] = ['title', 'slug', 'status', 'createdAt', 'revision', 'actions'];
-  readonly pageSize = 5;
+  readonly pageSize = 10;
 
   constructor() {
     this.formControlLocale.valueChanges.pipe(takeUntil(this.destroyed$)).subscribe(locale => {
@@ -200,20 +224,20 @@ export class ContentListComponent implements OnDestroy {
     this.pageIndex.set(0);
     this.total.set(0);
 
-    this.fetchRecords();
+    this.find();
   }
 
-  private async fetchRecords(
+  private async find(
     startAfterDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>,
     endBeforeDocument?: QueryDocumentSnapshot<DocumentData, DocumentData>
-  ) {
+  ): Promise<void> {
     if (!this.contentTreeService.activeCollection()) {
       return;
     }
     const spinnerRef = this.spinnerDialogService.open();
 
     const collectionName = this.contentTreeService.activeCollection()!;
-    const { docs: records, count: total } = await this.contentManagementService.fetchRecords(
+    const { docs: records, count: total } = await this.contentManagementService.find(
       collectionName,
       this.pageSize,
       startAfterDocument,
@@ -225,23 +249,22 @@ export class ContentListComponent implements OnDestroy {
     this.spinnerDialogService.close(spinnerRef);
   }
 
-  onNew() {
+  async onNew(): Promise<void> {
     const dialogRef = this.dialog.open(ContentListNewDialogComponent, { width: '480px' });
-    dialogRef.afterClosed().subscribe(async (data: any) => {
-      if (data) {
-        await this.addRecord(data);
-        this.init();
-      }
-    });
+    const data = await lastValueFrom(dialogRef.afterClosed());
+    if (data) {
+      await this.create(data);
+      this.init();
+    }
   }
 
-  private async addRecord(data: any) {
+  private async create(data: any): Promise<void> {
     const spinnerRef = this.spinnerDialogService.open();
 
     const collectionName = this.contentTreeService.activeCollection()!;
 
     try {
-      await this.contentManagementService.addRecord(collectionName, {
+      await this.contentManagementService.create(collectionName, {
         ...data,
         slug: this.contentTreeService.activeCollectionUrl() + '/' + data.slug,
         locale: this.contentManagementService.locale(),
@@ -257,96 +280,93 @@ export class ContentListComponent implements OnDestroy {
     this.spinnerDialogService.close(spinnerRef);
   }
 
-  async onRevision(record: DocumentData) {
+  async onRevision(record: DocumentData): Promise<void> {
     const collectionName = this.contentTreeService.activeCollection()!;
-    const { docs } = await this.contentManagementService.fetchLastRecordRevisions(
+    const { docs } = await this.contentManagementService.findLastRevisions(
       collectionName,
       record['slug']
     );
     // TODO
   }
 
-  onPublish(record: DocumentData) {
+  async onPublish(record: DocumentData): Promise<void> {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '480px',
       data: { title: 'Publish content', message: `Are you sure to publish "${record['slug']}" ?` },
       disableClose: true,
     });
-    dialogRef.afterClosed().subscribe(async (confirm: any) => {
-      if (confirm) {
-        await this.publishRecord(record);
-        this.init();
-      }
-    });
+    const confirm = await lastValueFrom(dialogRef.afterClosed());
+    if (confirm) {
+      await this.publish(record);
+      this.init();
+    }
   }
 
-  private async publishRecord(record: DocumentData) {
+  private async publish(record: DocumentData) {
     const spinnerRef = this.spinnerDialogService.open();
     try {
       const i = this.records().findIndex(el => el === record);
       const documentRef = this.firebaseRecords()[i].ref;
       const collectionName = this.contentTreeService.activeCollection()!;
-      await this.contentManagementService.publishRecord(collectionName, documentRef, record);
+      await this.contentManagementService.publish(collectionName, documentRef, record);
     } catch (error) {
       console.log(error);
     }
     this.spinnerDialogService.close(spinnerRef);
   }
 
-  onDraft(record: DocumentData) {
+  async onDraft(record: DocumentData) {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '480px',
       data: { title: 'Draft content', message: `Are you sure to draft "${record['slug']}" ?` },
       disableClose: true,
     });
-    dialogRef.afterClosed().subscribe(async (confirm: any) => {
-      if (confirm) {
-        await this.draftRecord(record);
-        this.init();
-      }
-    });
+    const confirm = await lastValueFrom(dialogRef.afterClosed());
+    if (confirm) {
+      await this.draft(record);
+      this.init();
+    }
   }
 
-  private async draftRecord(record: DocumentData) {
+  private async draft(record: DocumentData) {
     const spinnerRef = this.spinnerDialogService.open();
     try {
       const i = this.records().findIndex(el => el === record);
       const documentRef = this.firebaseRecords()[i].ref;
       const collectionName = this.contentTreeService.activeCollection()!;
-      await this.contentManagementService.draftRecord(collectionName, documentRef, record);
+      await this.contentManagementService.draft(collectionName, documentRef, record);
     } catch (error) {
       console.log(error);
     }
     this.spinnerDialogService.close(spinnerRef);
   }
 
-  onDelete(record: DocumentData) {
+  async onDelete(record: DocumentData): Promise<void> {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '480px',
       data: { title: 'Delete content', message: `Are you sure to delete "${record['slug']}" ?` },
       disableClose: true,
     });
-    dialogRef.afterClosed().subscribe(async (confirm: any) => {
-      if (confirm) {
-        await this.deleteRecord(record);
-        this.init();
-      }
-    });
+    const confirm = await lastValueFrom(dialogRef.afterClosed());
+    if (confirm) {
+      await this.delete(record);
+      this.init();
+    }
   }
 
-  private async deleteRecord(record: DocumentData) {
+  private async delete(record: DocumentData): Promise<void> {
     const spinnerRef = this.spinnerDialogService.open();
     try {
       const i = this.records().findIndex(el => el === record);
       const documentRef = this.firebaseRecords()[i].ref;
-      await this.contentManagementService.deleteRecord(documentRef);
+      await this.contentManagementService.delete(documentRef);
     } catch (error) {
       console.log(error);
     }
     this.spinnerDialogService.close(spinnerRef);
   }
 
-  onPage(event: PageEvent) {
+  onPage(event: PageEvent): void {
     if (event.pageIndex > event.previousPageIndex!) {
       this.onNext();
     } else {
@@ -354,22 +374,24 @@ export class ContentListComponent implements OnDestroy {
     }
   }
 
-  private async onNext() {
+  private async onNext(): Promise<void> {
     this.pageIndex.update(p => p + 1);
     try {
       const startAfterDocument = [...this.firebaseRecords()].pop();
-      await this.fetchRecords(startAfterDocument);
+      await this.find(startAfterDocument);
     } catch (error) {
+      console.log(error);
       this.pageIndex.update(p => p - 1);
     }
   }
 
-  private async onPrev() {
+  private async onPrev(): Promise<void> {
     this.pageIndex.update(p => p - 1);
     try {
       const endBeforeDocument = [...this.firebaseRecords()].shift();
-      await this.fetchRecords(undefined, endBeforeDocument);
+      await this.find(undefined, endBeforeDocument);
     } catch (error) {
+      console.log(error);
       this.pageIndex.update(p => p + 1);
     }
   }
