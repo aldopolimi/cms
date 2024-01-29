@@ -73,7 +73,12 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let element">
-              {{ element.status }}
+              <span
+                [ngStyle]="{
+                  color: element.status === 'published' ? 'lightgreen' : 'orange'
+                }">
+                {{ element.status | uppercase }}
+              </span>
             </td>
           </ng-container>
           <ng-container matColumnDef="revision">

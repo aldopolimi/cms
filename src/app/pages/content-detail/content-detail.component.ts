@@ -5,12 +5,10 @@ import {
   Component,
   OnDestroy,
   Signal,
-  WritableSignal,
   computed,
   inject,
   signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { QueryDocumentSnapshot, DocumentData } from '@angular/fire/firestore';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -27,6 +25,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SpinnerDialogService } from '../../services/spinner-dialog.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-content-detail',
@@ -40,6 +39,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatSelectModule,
   ],
   template: `
     <div class="app-page">
@@ -142,6 +142,97 @@ import { MatSnackBar } from '@angular/material/snack-bar';
             </mat-form-field>
           </mat-expansion-panel>
         </mat-accordion>
+        <br />
+        <mat-accordion>
+          <mat-expansion-panel [expanded]="false">
+            <mat-expansion-panel-header>
+              <mat-panel-title> Metadata </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <mat-card>
+              <mat-card-header>
+                <mat-card-subtitle>Google</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>Description</mat-label>
+                  <textarea
+                    formControlName="metadataGoogleDescription"
+                    matInput
+                    #metadataGoogleDescription
+                    placeholder="description"
+                    maxlength="255"></textarea>
+                  <mat-hint align="end">{{ metadataGoogleDescription.value.length }}/255</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>Keywords</mat-label>
+                  <textarea
+                    formControlName="metadataGoogleKeywords"
+                    matInput
+                    #metadataGoogleKeywords
+                    placeholder="keywords"
+                    maxlength="255"></textarea>
+                  <mat-hint align="end">{{ metadataGoogleKeywords.value.length }}/255</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>Robots</mat-label>
+                  <mat-select
+                    formControlName="metadataGoogleRobots"
+                    #metadataGoogleRobots
+                    placeholder="robots">
+                    <mat-option value=""></mat-option>
+                    <mat-option value="index-follow">index-follow</mat-option>
+                    <mat-option value="noindex-nofollow">noindex-nofollow</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card>
+              <mat-card-header>
+                <mat-card-subtitle>Facebook</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>OG:Title</mat-label>
+                  <input
+                    formControlName="metadataFacebookTitle"
+                    matInput
+                    #metadataFacebookTitle
+                    placeholder="title"
+                    maxlength="255" />
+                  <mat-hint align="end">{{ metadataFacebookTitle.value.length }}/255</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>OG:Type</mat-label>
+                  <input
+                    formControlName="metadataFacebookType"
+                    matInput
+                    #metadataFacebookType
+                    placeholder="type"
+                    maxlength="255" />
+                  <mat-hint align="end">{{ metadataFacebookType.value.length }}/255</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>OG:Description</mat-label>
+                  <textarea
+                    formControlName="metadataFacebookDescription"
+                    matInput
+                    #metadataFacebookDescription
+                    placeholder="description"
+                    maxlength="255"></textarea>
+                  <mat-hint align="end"
+                    >{{ metadataFacebookDescription.value.length }}/255</mat-hint
+                  >
+                </mat-form-field>
+              </mat-card-content>
+            </mat-card>
+          </mat-expansion-panel>
+        </mat-accordion>
       </form>
       <div class="app-page__side">
         <mat-card>
@@ -182,6 +273,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     </div>
   `,
   styles: `
+    mat-expansion-panel mat-card,
+    mat-expansion-panel mat-card mat-card-header{
+      margin-bottom: 10px;
+    }
+
     mat-form-field {
       width: 100%;
       margin: 10px 0;
@@ -226,12 +322,26 @@ export class ContentDetailComponent implements OnDestroy {
       title: [this.content()['title'], [Validators.required]],
       internalTitle: [this.content()['internalTitle']],
       sitemapId: [this.content()['sitemapId']],
+
+      metadataGoogleDescription: [this.content()['metadata']?.['google']?.['description']],
+      metadataGoogleKeywords: [this.content()['metadata']?.['google']?.['keywords']],
+      metadataGoogleRobots: [this.content()['metadata']?.['google']?.['robots']],
+
+      metadataFacebookTitle: [this.content()['metadata']?.['facebook']?.['title']],
+      metadataFacebookType: [this.content()['metadata']?.['facebook']?.['type']],
+      metadataFacebookDescription: [this.content()['metadata']?.['facebook']?.['description']],
     },
     { updateOn: 'blur' }
   );
   titleControl = this.contentForm.get('title')!;
   internalTitleControl = this.contentForm.get('internalTitle')!;
   sitemapIdControl = this.contentForm.get('sitemapId')!;
+  metadataGoogleDescriptionControl = this.contentForm.get('metadataGoogleDescription')!;
+  metadataGoogleKeywordsControl = this.contentForm.get('metadataGoogleKeywords')!;
+  metadataGoogleRobotsControl = this.contentForm.get('metadataGoogleRobots')!;
+  metadataFacebookTitleControl = this.contentForm.get('metadataFacebookTitle')!;
+  metadataFacebookTypeControl = this.contentForm.get('metadataFacebookType')!;
+  metadataFacebookDescriptionControl = this.contentForm.get('metadataFacebookDescription')!;
 
   constructor() {
     this.contentForm.statusChanges.pipe(takeUntil(this.destroyed$)).subscribe(_ => {
