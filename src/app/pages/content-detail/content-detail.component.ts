@@ -229,6 +229,17 @@ import { MatSelectModule } from '@angular/material/select';
                     >{{ metadataFacebookDescription.value.length }}/255</mat-hint
                   >
                 </mat-form-field>
+
+                <mat-form-field appearance="outline" floatLabel="always">
+                  <mat-label>OG:Url</mat-label>
+                  <input
+                    formControlName="metadataFacebookUrl"
+                    matInput
+                    #metadataFacebookUrl
+                    placeholder="url"
+                    maxlength="255" />
+                  <mat-hint align="end">{{ metadataFacebookUrl.value.length }}/255</mat-hint>
+                </mat-form-field>
               </mat-card-content>
             </mat-card>
           </mat-expansion-panel>
@@ -330,6 +341,7 @@ export class ContentDetailComponent implements OnDestroy {
       metadataFacebookTitle: [this.content()['metadata']?.['facebook']?.['title']],
       metadataFacebookType: [this.content()['metadata']?.['facebook']?.['type']],
       metadataFacebookDescription: [this.content()['metadata']?.['facebook']?.['description']],
+      metadataFacebookUrl: [this.content()['metadata']?.['facebook']?.['url']],
     },
     { updateOn: 'blur' }
   );
@@ -342,6 +354,7 @@ export class ContentDetailComponent implements OnDestroy {
   metadataFacebookTitleControl = this.contentForm.get('metadataFacebookTitle')!;
   metadataFacebookTypeControl = this.contentForm.get('metadataFacebookType')!;
   metadataFacebookDescriptionControl = this.contentForm.get('metadataFacebookDescription')!;
+  metadataFacebookUrlControl = this.contentForm.get('metadataFacebookUrl')!;
 
   constructor() {
     this.contentForm.statusChanges.pipe(takeUntil(this.destroyed$)).subscribe(_ => {
@@ -366,6 +379,19 @@ export class ContentDetailComponent implements OnDestroy {
         title: this.titleControl.value,
         internalTitle: this.internalTitleControl.value,
         sitemapId: this.sitemapIdControl.value,
+        metadata: {
+          google: {
+            description: this.metadataGoogleDescriptionControl.value,
+            keywords: this.metadataGoogleKeywordsControl.value,
+            robots: this.metadataGoogleRobotsControl.value,
+          },
+          facebook: {
+            title: this.metadataFacebookTitleControl.value,
+            type: this.metadataFacebookTypeControl.value,
+            description: this.metadataFacebookDescriptionControl.value,
+            url: this.metadataFacebookUrlControl.value,
+          },
+        },
       });
       this.reload();
     }
@@ -403,6 +429,19 @@ export class ContentDetailComponent implements OnDestroy {
         title: this.titleControl.value,
         internalTitle: this.internalTitleControl.value,
         sitemapId: this.sitemapIdControl.value,
+        metadata: {
+          google: {
+            description: this.metadataGoogleDescriptionControl.value,
+            keywords: this.metadataGoogleKeywordsControl.value,
+            robots: this.metadataGoogleRobotsControl.value,
+          },
+          facebook: {
+            title: this.metadataFacebookTitleControl.value,
+            type: this.metadataFacebookTypeControl.value,
+            description: this.metadataFacebookDescriptionControl.value,
+            url: this.metadataFacebookUrlControl.value,
+          },
+        },
       });
       this.reload();
     }
@@ -436,6 +475,19 @@ export class ContentDetailComponent implements OnDestroy {
         title: this.titleControl.value,
         internalTitle: this.internalTitleControl.value,
         sitemapId: this.sitemapIdControl.value,
+        metadata: {
+          google: {
+            description: this.metadataGoogleDescriptionControl.value,
+            keywords: this.metadataGoogleKeywordsControl.value,
+            robots: this.metadataGoogleRobotsControl.value,
+          },
+          facebook: {
+            title: this.metadataFacebookTitleControl.value,
+            type: this.metadataFacebookTypeControl.value,
+            description: this.metadataFacebookDescriptionControl.value,
+            url: this.metadataFacebookUrlControl.value,
+          },
+        },
       });
       this.reload();
     }

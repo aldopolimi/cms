@@ -73,6 +73,12 @@ export const routes: Routes = [
       import('./pages/content-detail/content-detail.component').then(c => c.ContentDetailComponent),
   },
   {
+    path: 'media-library/:media-type',
+    canActivate: [isLoggedInGuard],
+    loadComponent: () =>
+      import('./pages/media-library/media-library.component').then(c => c.MediaLibraryComponent),
+  },
+  {
     path: 'login',
     canActivate: [isNotLoggedInGuard],
     loadComponent: () => import('./pages/login/login.component').then(c => c.LoginComponent),

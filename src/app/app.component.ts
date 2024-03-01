@@ -19,7 +19,7 @@ import { AuthService } from './services/auth.service';
     MatButtonModule,
   ],
   template: `
-    <mat-sidenav-container class="app-container">
+    <mat-sidenav-container class="app-container" autosize>
       <mat-sidenav #sidenav mode="side">
         @if (authService.isLoggedIn()) {
           <app-sidenav></app-sidenav>

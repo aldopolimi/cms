@@ -69,7 +69,7 @@ import { uniqueSlugValidator } from '../../../../validators/unique-slug.validato
         </mat-form-field>
       </div>
       <div mat-dialog-actions>
-        <button mat-button type="button" cdkFocusInitial mat-dialog-close>CANCEL</button>
+        <button mat-button type="button" mat-dialog-close>CANCEL</button>
         <button mat-flat-button type="submit" color="primary" [disabled]="!contentForm.valid">
           SAVE
         </button>

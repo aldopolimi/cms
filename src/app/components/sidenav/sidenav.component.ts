@@ -1,88 +1,88 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { ArrayDataSource } from '@angular/cdk/collections';
-import { NestedTreeControl, CdkTreeModule } from '@angular/cdk/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
 import { ContentTreeService } from '../../services/content-tree.service';
 import { ContentManagementService } from '../../services/content-management.service';
+import { FlatTreeControl } from '@angular/cdk/tree';
+import { ContentElement } from '../../models/content-tree';
 
 @Component({
   selector: 'app-sidenav',
   standalone: true,
-  imports: [CdkTreeModule, MatIconModule, MatButtonModule, RouterModule],
+  imports: [MatTreeModule, MatIconModule, MatButtonModule, RouterModule],
   template: `
     <div class="app-tree-wrapper">
-      <h4>Content management</h4>
-      <cdk-tree [dataSource]="menuItems()" [treeControl]="treeControl">
-        <cdk-nested-tree-node *cdkTreeNodeDef="let node" class="app-tree-node">
+      <h3>CONTENT MANAGEMENT</h3>
+
+      <mat-tree [dataSource]="menuItems()" [treeControl]="treeControl">
+        <!-- This is the tree node template for leaf nodes -->
+        <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
           <button mat-icon-button disabled></button>
           @if (node.path) {
             <a
               [routerLink]="'/content-list/' + contentManagementService.locale() + '/' + node.path"
-              routerLinkActive="active">
-              {{ node.name }}
+              routerLinkActive="active"
+              >{{ node.name }}
             </a>
           } @else {
-            <span>
-              {{ node.name }}
-            </span>
-          }
-        </cdk-nested-tree-node>
-        <cdk-nested-tree-node *cdkTreeNodeDef="let node; when: hasChild" class="app-tree-node">
-          <div class="app-tree-node-inner">
-            <button mat-icon-button [attr.aria-label]="'toggle ' + node.name" cdkTreeNodeToggle>
-              <mat-icon class="mat-icon-rtl-mirror">
-                {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
-              </mat-icon>
-            </button>
             {{ node.name }}
-          </div>
-          <div [class.app-tree-invisible]="!treeControl.isExpanded(node)">
-            <ng-container cdkTreeNodeOutlet></ng-container>
-          </div>
-        </cdk-nested-tree-node>
-      </cdk-tree>
+          }
+        </mat-tree-node>
+
+        <!-- This is the tree node template for expandable nodes -->
+        <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+          <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
+            <mat-icon class="mat-icon-rtl-mirror">
+              {{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+            </mat-icon>
+          </button>
+          {{ node.name }}
+        </mat-tree-node>
+      </mat-tree>
+
+      <br />
+
+      <h3>MEDIA LIBRARY</h3>
+
+      <ul class="link-list">
+        <li>
+          <a routerLink="/media-library/images" routerLinkActive="active"> Images </a>
+        </li>
+        <li>
+          <a routerLink="/media-library/videos" routerLinkActive="active"> Videos </a>
+        </li>
+        <li>
+          <a routerLink="/media-library/documents" routerLinkActive="active"> Documents </a>
+        </li>
+      </ul>
     </div>
   `,
   styles: `
 
     .app-tree-wrapper {
-      width: 240px;
       padding: 40px 80px 40px 20px;
     }
 
-    .app-tree-invisible {
-      display: none;
-    }
-
-    .app-tree ul,
-    .app-tree li {
-      margin-top: 0;
-      margin-bottom: 0;
-      list-style-type: none;
-    }
-    .app-tree-node {
-      display: block;
-    }
-    .app-tree-node-inner {
-      display: flex;
-      align-items: center;
-    }
-
-    .app-tree-node .app-tree-node {
-      padding-left: 20px;
-      word-break: break-all;
-    }
-
-    .app-tree-node > a {
-      text-decoration: none;
+    a {
       color: inherit;
+      text-decoration: none;
+      &:hover,
+      &.active {
+        color: #ef4e8d;
+      }
     }
 
-    .app-tree-node > a.active {
-      color: #c2185b;
+    .link-list {
+      list-style: none;
+      margin: 0;
+      padding-left: 48px;
+      li {
+        padding: 14px 0;
+      }
     }
+
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -90,16 +90,35 @@ export class SidenavComponent {
   contentTreeService = inject(ContentTreeService);
   contentManagementService = inject(ContentManagementService);
 
-  treeControl = new NestedTreeControl<any>(node => node.children);
+  private _transformer = (node: ContentElement, level: number) => {
+    return {
+      expandable: !!node.children && node.children.length > 0,
+      name: node.name,
+      level: level,
+      path: node.path,
+    };
+  };
+  treeControl = new FlatTreeControl<any>(
+    node => node.level,
+    node => node.expandable
+  );
+  treeFlattener = new MatTreeFlattener(
+    this._transformer,
+    node => node.level,
+    node => node.expandable,
+    node => node.children
+  );
   menuItems = computed(() =>
     this.contentTreeService.contentTree()
-      ? new ArrayDataSource(this.contentTreeService.contentTree()!.data)
-      : new ArrayDataSource([])
+      ? new MatTreeFlatDataSource(
+          this.treeControl,
+          this.treeFlattener,
+          this.contentTreeService.contentTree()!.data
+        )
+      : new MatTreeFlatDataSource(this.treeControl, this.treeFlattener, [])
   );
 
   constructor() {}
 
-  hasChild(_: number, node: any) {
-    return !!node.children && node.children.length > 0;
-  }
+  hasChild = (_: number, node: any) => node.expandable;
 }
