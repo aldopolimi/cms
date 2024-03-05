@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   OnDestroy,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -16,6 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SpinnerDialogService } from '../../services/spinner-dialog.service';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-media-library',
@@ -27,14 +29,32 @@ import { SpinnerDialogService } from '../../services/spinner-dialog.service';
     UploadButtonComponent,
     ReactiveFormsModule,
     MatButtonModule,
+    MatInputModule,
   ],
   template: `
     <div class="app-page">
       <form [formGroup]="uploadForm">
-        <app-upload-button formControlName="file"></app-upload-button>
-        <button mat-flat-button color="primary" [disabled]="!fileControl.value" (click)="upload()">
+        <app-upload-button formControlName="file" [accept]="mediaAccept()"></app-upload-button>
+        <button
+          mat-flat-button
+          type="button"
+          color="primary"
+          [disabled]="!fileControl.value"
+          (click)="upload()">
           UPLOAD
         </button>
+      </form>
+      <br />
+      <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+        <mat-form-field appearance="outline" floatLabel="always" style="width: 100%">
+          <mat-label>Search</mat-label>
+          <input
+            formControlName="search"
+            matInput
+            #search
+            placeholder="search file..."
+            maxlength="255" />
+        </mat-form-field>
       </form>
       <mat-list>
         @for (item of mediaItems(); track item.name) {
@@ -63,7 +83,7 @@ import { SpinnerDialogService } from '../../services/spinner-dialog.service';
             </div>
           </mat-list-item>
         } @empty {
-          <mat-list-item> There is no file yet. </mat-list-item>
+          <mat-list-item> No results found. </mat-list-item>
         }
       </mat-list>
     </div>
@@ -86,7 +106,15 @@ export class MediaLibraryComponent implements OnDestroy {
   mediaLibraryService = inject(MediaLibraryService);
   spinnerDialogService = inject(SpinnerDialogService);
 
-  mediaType!: string;
+  mediaType = signal<string>('');
+  mediaAccept = computed(
+    () =>
+      ({
+        images: 'image/*',
+        videos: 'video/*',
+        documents: '.pdf',
+      })[this.mediaType()] || ''
+  );
   mediaItems = signal<{ downloadUrl: string; name: string; size: number; contentType: string }[]>(
     []
   );
@@ -97,12 +125,16 @@ export class MediaLibraryComponent implements OnDestroy {
   uploadForm = this.fb.group({
     file: null,
   });
+  searchForm = this.fb.group({
+    search: '',
+  });
 
   fileControl = this.uploadForm.get('file')!;
+  searchControl = this.searchForm.get('search')!;
 
   constructor() {
     this.activatedRoute.paramMap.pipe(takeUntil(this.destroyed$)).subscribe(data => {
-      this.mediaType = data.get('media-type')!;
+      this.mediaType.set(data.get('media-type')!);
       this.init();
     });
   }
@@ -114,7 +146,21 @@ export class MediaLibraryComponent implements OnDestroy {
   async init() {
     const spinnerRef = this.spinnerDialogService.open();
     try {
-      const items = await this.mediaLibraryService.findRecent(this.mediaType);
+      this.fileControl.setValue(null);
+      const items = await this.mediaLibraryService.findRecent(this.mediaType());
+      this.mediaItems.set(items);
+    } catch (error) {
+      console.log(error);
+    }
+    this.spinnerDialogService.close(spinnerRef);
+  }
+
+  async onSearch() {
+    const spinnerRef = this.spinnerDialogService.open();
+    try {
+      // const searchTerm = this.mediaType() + '/' + this.searchControl.value;
+      const searchTerm = this.mediaType();
+      const items = await this.mediaLibraryService.findRecent(searchTerm);
       this.mediaItems.set(items);
     } catch (error) {
       console.log(error);
@@ -125,7 +171,7 @@ export class MediaLibraryComponent implements OnDestroy {
   async upload() {
     const spinnerRef = this.spinnerDialogService.open();
     try {
-      await this.mediaLibraryService.upload(this.fileControl.value!, this.mediaType);
+      await this.mediaLibraryService.upload(this.fileControl.value!, this.mediaType());
       this.fileControl.setValue(null);
       this.spinnerDialogService.close(spinnerRef);
 

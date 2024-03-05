@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  inject,
   input,
   signal,
   viewChild,
@@ -9,6 +10,7 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-upload-button',
@@ -25,6 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
         (change)="onFileSelected($event)" />
       <button
         mat-flat-button
+        type="button"
         [color]="color()"
         class="choose-file-button"
         [disabled]="disabled()"
@@ -35,7 +38,7 @@ import { MatIconModule } from '@angular/material/icon';
         {{ file()?.name || 'No file choosen' }}
       </span>
       @if (file()) {
-        <button mat-mini-fab color="warn" class="remove-file-button" (click)="onFileCleared()">
+        <button mat-mini-fab color="warn" class="remove-file-button" (click)="onFileClearClick()">
           <mat-icon>clear</mat-icon>
         </button>
       }
@@ -66,9 +69,14 @@ import { MatIconModule } from '@angular/material/icon';
   ],
 })
 export class UploadButtonComponent implements ControlValueAccessor {
+  private readonly ONE_MEGABYTE = 1048576;
+
+  snackBar = inject(MatSnackBar);
+
   fileUploadElement = viewChild.required<ElementRef>('fileUpload');
 
   accept = input<string>();
+  maxSize = input<number>(this.ONE_MEGABYTE);
   color = input<string>('primary');
 
   file = signal<File | null>(null);
@@ -82,12 +90,21 @@ export class UploadButtonComponent implements ControlValueAccessor {
     this.markAsTouched();
     if (!this.disabled()) {
       const f: File = event.target.files[0];
+
+      if (f && f.size > this.maxSize()) {
+        this.snackBar.open(`Exceeded max file size (${this.maxSize()} bytes)`, '', {
+          duration: 2000,
+        });
+        this.onFileClearClick();
+        return;
+      }
+
       this.file.set(f ? f : null);
       this.onChange(f ? f : null);
     }
   }
 
-  onFileCleared() {
+  onFileClearClick() {
     this.markAsTouched();
     if (!this.disabled()) {
       this.fileUploadElement().nativeElement.value = '';
