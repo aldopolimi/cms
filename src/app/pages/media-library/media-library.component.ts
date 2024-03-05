@@ -98,5 +98,8 @@ export class MediaLibraryComponent {
     this.mediaItems.set(items);
   }
 
-  upload() {}
+  upload() {
+    console.log(this.fileControl.value);
+    this.fileControl.setValue(null);
+  }
 }

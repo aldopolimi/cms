@@ -2,9 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  Input,
-  ViewChild,
+  input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,12 +20,12 @@ import { MatIconModule } from '@angular/material/icon';
         type="file"
         class="file-input"
         #fileUpload
-        formControlName="file"
+        [accept]="accept()"
         [disabled]="disabled()"
         (change)="onFileSelected($event)" />
       <button
         mat-flat-button
-        [color]="color"
+        [color]="color()"
         class="choose-file-button"
         [disabled]="disabled()"
         (click)="fileUpload.click()">
@@ -66,37 +66,42 @@ import { MatIconModule } from '@angular/material/icon';
   ],
 })
 export class UploadButtonComponent implements ControlValueAccessor {
-  @ViewChild('fileUpload') fileUploadElement!: ElementRef;
-  @Input() color: string = 'primary';
+  fileUploadElement = viewChild.required<ElementRef>('fileUpload');
+
+  accept = input<string>();
+  color = input<string>('primary');
 
   file = signal<File | null>(null);
 
-  onChange = (file: File | null) => {};
-  onTouched = () => {};
-
   disabled = signal(false);
   touched = false;
+  onChange = (file: File | null) => {};
+  onTouched = () => {};
 
   onFileSelected(event: any) {
     this.markAsTouched();
     if (!this.disabled()) {
-      const file: File = event.target.files[0];
-      this.file.set(file ? file : null);
-      this.onChange(file ? file : null);
+      const f: File = event.target.files[0];
+      this.file.set(f ? f : null);
+      this.onChange(f ? f : null);
     }
   }
 
   onFileCleared() {
     this.markAsTouched();
     if (!this.disabled()) {
-      this.fileUploadElement.nativeElement.value = '';
+      this.fileUploadElement().nativeElement.value = '';
       this.file.set(null);
       this.onChange(null);
     }
   }
 
-  writeValue(file: File | null) {
-    this.file.set(file);
+  writeValue(f: File | null) {
+    if (f) {
+      throw new Error('Cannot set a file using writeValue');
+    }
+    this.file.set(null);
+    this.fileUploadElement().nativeElement.value = '';
   }
 
   registerOnChange(onChange: any) {
