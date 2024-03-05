@@ -35,7 +35,7 @@ import { MatIconModule } from '@angular/material/icon';
         {{ file()?.name || 'No file choosen' }}
       </span>
       @if (file()) {
-        <button mat-mini-fab color="warn" (click)="onFileCleared()">
+        <button mat-mini-fab color="warn" class="remove-file-button" (click)="onFileCleared()">
           <mat-icon>clear</mat-icon>
         </button>
       }
@@ -43,17 +43,17 @@ import { MatIconModule } from '@angular/material/icon';
   `,
   styles: `
     .wrapper {
-      display: flex;
+      display: inline-flex;
       align-items: center;
     }
     .file-input {
       display: none;
     }
-    .choose-file-button {
-      margin: 2px 0;
-    }
     .file-name {
       padding: 0 10px;
+    }
+    .remove-file-button {
+      margin-right: 10px;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

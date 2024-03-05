@@ -304,7 +304,7 @@ import { MatSelectModule } from '@angular/material/select';
 export class ContentDetailComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();
 
-  route = inject(ActivatedRoute);
+  activatedRoute = inject(ActivatedRoute);
   router = inject(Router);
   cdRef = inject(ChangeDetectorRef);
   fb = inject(FormBuilder);
@@ -315,7 +315,10 @@ export class ContentDetailComponent implements OnDestroy {
   spinnerDialogService = inject(SpinnerDialogService);
 
   firebaseContent = signal<QueryDocumentSnapshot<DocumentData, DocumentData>>(
-    this.route.snapshot.data['content'] as QueryDocumentSnapshot<DocumentData, DocumentData>
+    this.activatedRoute.snapshot.data['content'] as QueryDocumentSnapshot<
+      DocumentData,
+      DocumentData
+    >
   );
   content = computed(() => this.firebaseContent().data());
 
@@ -553,7 +556,7 @@ export class ContentDetailComponent implements OnDestroy {
   }
 
   private backToContentList(replaceUrl = false) {
-    const commands = this.route.snapshot.url.map(el => el.path).slice(1, -1);
+    const commands = this.activatedRoute.snapshot.url.map(el => el.path).slice(1, -1);
     this.router.navigate(['content-list', ...commands], { replaceUrl });
   }
 

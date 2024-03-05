@@ -2,12 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import {
   Storage,
   ref,
-  uploadBytesResumable,
   list,
-  listAll,
   getDownloadURL,
   getMetadata,
   FullMetadata,
+  uploadBytes,
 } from '@angular/fire/storage';
 
 @Injectable({
@@ -15,16 +14,23 @@ import {
 })
 export class MediaLibraryService {
   private storage: Storage = inject(Storage);
-  private rootRef = ref(this.storage, '');
 
   constructor() {}
 
-  async findRecent(): Promise<
-    { downloadUrl: string; name: string; size: number; contentType: string }[]
-  > {
-    console.log('🚀 ~ MediaLibraryService ~ find ~ get media');
+  async upload(file: File, path: string) {
+    console.log('🚀 ~ MediaLibraryService ~ upload ~ upload file');
+    const reference = ref(this.storage, `${path}/${file.name}`);
+    await uploadBytes(reference, file);
+    console.log('🚀 ~ MediaLibraryService ~ find ~ upload file success');
+  }
 
-    const { items } = await list(this.rootRef, { maxResults: 10 });
+  async findRecent(
+    path: string
+  ): Promise<{ downloadUrl: string; name: string; size: number; contentType: string }[]> {
+    console.log('🚀 ~ MediaLibraryService ~ findRecent ~ get media');
+
+    const reference = ref(this.storage, path);
+    const { items } = await list(reference, { maxResults: 10 });
 
     const promises = [];
     for (const item of items) {
@@ -45,7 +51,7 @@ export class MediaLibraryService {
       });
     }
 
-    console.log('🚀 ~ MediaLibraryService ~ find ~ get media success');
+    console.log('🚀 ~ MediaLibraryService ~ findRecent ~ get media success');
     return response;
   }
 }
