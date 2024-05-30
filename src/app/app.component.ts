@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
@@ -38,14 +38,14 @@ import { AuthService } from './services/auth.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
-  @ViewChild(MatSidenav) matSideNav?: MatSidenav;
+  matSideNav = viewChild(MatSidenav);
 
   authService = inject(AuthService);
   router = inject(Router);
 
   async logout() {
-    if (this.matSideNav) {
-      this.matSideNav.close();
+    if (this.matSideNav()) {
+      this.matSideNav()!.close();
     }
     await this.authService.logout();
     this.router.navigate(['login']);
