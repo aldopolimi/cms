@@ -4,7 +4,6 @@ import {
   ChangeDetectorRef,
   Component,
   OnDestroy,
-  Signal,
   computed,
   inject,
   signal,
@@ -12,7 +11,7 @@ import {
 import { QueryDocumentSnapshot, DocumentData } from '@angular/fire/firestore';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, lastValueFrom, map, takeUntil } from 'rxjs';
+import { Subject, lastValueFrom, takeUntil } from 'rxjs';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -26,21 +25,11 @@ import { SpinnerDialogService } from '../../services/spinner-dialog.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
+import { ContentDetailBasicInformationBoxComponent } from './components/content-detail-basic-information-box/content-detail-basic-information-box.component';
 
 @Component({
   selector: 'app-content-detail',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatExpansionModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-  ],
   template: `
     <div class="app-page">
       <button mat-flat-button type="button" (click)="onBack()">
@@ -50,61 +39,16 @@ import { MatSelectModule } from '@angular/material/select';
 
     <div class="app-page app-page--flex">
       <div class="app-page__side">
-        <mat-accordion>
-          <mat-expansion-panel [expanded]="true">
-            <mat-expansion-panel-header>
-              <mat-panel-title> Basic information </mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <table style="width: 100%">
-              <tbody>
-                <tr>
-                  <td>Slug</td>
-                  <td>{{ content()['slug'] }}</td>
-                </tr>
-                <tr>
-                  <td>Locale</td>
-                  <td>{{ localeFlag() }} ( {{ content()['locale'] }} )</td>
-                </tr>
-                <tr>
-                  <td>Revision</td>
-                  <td>{{ content()['revision'] }}</td>
-                </tr>
-                <tr>
-                  <td>Status</td>
-                  <td
-                    [ngStyle]="{
-                      color: content()['status'] === 'published' ? 'lightgreen' : 'orange'
-                    }">
-                    {{ content()['status'] | uppercase }}
-                  </td>
-                </tr>
-                @if (content()['status'] === 'published') {
-                  <tr>
-                    <td>Published</td>
-                    <td>
-                      {{ content()['publishedAt'].toDate() | date: "dd MMM yyyy '-' HH:mm:ss z" }}
-                    </td>
-                  </tr>
-                }
-                <tr>
-                  <td>Created</td>
-                  <td>
-                    {{ content()['createdAt'].toDate() | date: "dd MMM yyyy '-' HH:mm:ss z" }}
-                  </td>
-                </tr>
-                @if (content()['updatedAt']) {
-                  <tr>
-                    <td>Updated</td>
-                    <td>
-                      {{ content()['updatedAt'].toDate() | date: "dd MMM yyyy '-' HH:mm:ss z" }}
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </mat-expansion-panel>
-        </mat-accordion>
+        <app-content-detail-basic-information-box
+          [slug]="content()['slug']"
+          [locale]="content()['locale']"
+          [revision]="content()['revision']"
+          [status]="content()['status']"
+          [createdAt]="content()['createdAt']?.toDate()"
+          [updatedAt]="content()['updatedAt']?.toDate()"
+          [publishedAt]="
+            content()['publishedAt']?.toDate()
+          "></app-content-detail-basic-information-box>
       </div>
       <form class="app-page__centered" [formGroup]="contentForm">
         <mat-accordion>
@@ -300,6 +244,18 @@ import { MatSelectModule } from '@angular/material/select';
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    ContentDetailBasicInformationBoxComponent,
+  ],
 })
 export class ContentDetailComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();
@@ -321,15 +277,6 @@ export class ContentDetailComponent implements OnDestroy {
     >
   );
   content = computed(() => this.firebaseContent().data());
-
-  localeMap: Map<string, string> = new Map([
-    ['it-IT', '🇮🇹'],
-    ['en-EN', '🇬🇧'],
-    ['fr-FR', '🇫🇷'],
-    ['es-ES', '🇪🇸'],
-    ['de-DE', '🇩🇪'],
-  ]);
-  localeFlag: Signal<string> = computed(() => this.localeMap.get(this.content()['locale'])!);
 
   contentForm = this.fb.group(
     {
