@@ -1,17 +1,9 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { QueryDocumentSnapshot, DocumentData } from '@angular/fire/firestore';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, lastValueFrom, takeUntil } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -26,6 +18,8 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { ContentDetailBasicInformationBoxComponent } from './components/content-detail-basic-information-box/content-detail-basic-information-box.component';
+import { ContentDetailActionsBoxComponent } from './components/content-detail-actions-box/content-detail-actions-box.component';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-content-detail',
@@ -190,40 +184,14 @@ import { ContentDetailBasicInformationBoxComponent } from './components/content-
         </mat-accordion>
       </form>
       <div class="app-page__side">
-        <mat-card>
-          <mat-card-content>
-            @if (content()['status'] === 'draft') {
-              <button
-                mat-flat-button
-                type="button"
-                color="accent"
-                [disabled]="!contentForm.valid"
-                (click)="onPublish()">
-                <mat-icon>publish</mat-icon> SAVE & PUBLISH
-              </button>
-            } @else if (content()['status'] === 'published') {
-              <button
-                mat-flat-button
-                type="button"
-                color="accent"
-                [disabled]="!contentForm.valid"
-                (click)="onDraft()">
-                <mat-icon>drafts</mat-icon> SAVE & DRAFT
-              </button>
-            }
-            <button
-              mat-flat-button
-              type="button"
-              color="primary"
-              [disabled]="!contentForm.valid"
-              (click)="onSave()">
-              <mat-icon>check</mat-icon> SAVE
-            </button>
-            <button mat-flat-button type="button" color="warn" (click)="onDelete()">
-              <mat-icon>delete_outline</mat-icon> DELETE
-            </button>
-          </mat-card-content>
-        </mat-card>
+        <app-content-detail-actions-box
+          [contentStatus]="content()['status']"
+          [contentFormStatus]="contentFormStatus()"
+          (publish)="onPublish()"
+          (draft)="onDraft()"
+          (save)="onSave()"
+          (delete)="onDelete()">
+        </app-content-detail-actions-box>
       </div>
     </div>
   `,
@@ -236,11 +204,6 @@ import { ContentDetailBasicInformationBoxComponent } from './components/content-
     mat-form-field {
       width: 100%;
       margin: 10px 0;
-    }
-
-    .app-page__side > mat-card > mat-card-content > button {
-      width: 100%;
-      margin-bottom: 10px;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -255,14 +218,12 @@ import { ContentDetailBasicInformationBoxComponent } from './components/content-
     MatIconModule,
     MatSelectModule,
     ContentDetailBasicInformationBoxComponent,
+    ContentDetailActionsBoxComponent,
   ],
 })
-export class ContentDetailComponent implements OnDestroy {
-  private destroyed$: Subject<boolean> = new Subject<boolean>();
-
+export class ContentDetailComponent {
   activatedRoute = inject(ActivatedRoute);
   router = inject(Router);
-  cdRef = inject(ChangeDetectorRef);
   fb = inject(FormBuilder);
   dialog = inject(MatDialog);
   snackBar = inject(MatSnackBar);
@@ -293,7 +254,7 @@ export class ContentDetailComponent implements OnDestroy {
       metadataFacebookDescription: [this.content()['metadata']?.['facebook']?.['description']],
       metadataFacebookUrl: [this.content()['metadata']?.['facebook']?.['url']],
     },
-    { updateOn: 'blur' }
+    { updateOn: 'change' }
   );
   titleControl = this.contentForm.get('title')!;
   internalTitleControl = this.contentForm.get('internalTitle')!;
@@ -306,11 +267,11 @@ export class ContentDetailComponent implements OnDestroy {
   metadataFacebookDescriptionControl = this.contentForm.get('metadataFacebookDescription')!;
   metadataFacebookUrlControl = this.contentForm.get('metadataFacebookUrl')!;
 
-  constructor() {
-    this.contentForm.statusChanges.pipe(takeUntil(this.destroyed$)).subscribe(_ => {
-      this.cdRef.detectChanges();
-    });
-  }
+  contentFormStatus = toSignal(this.contentForm.statusChanges, {
+    initialValue: this.contentForm.status,
+  });
+
+  constructor() {}
 
   async onPublish(): Promise<void> {
     if (!this.contentForm.valid) {
@@ -505,9 +466,5 @@ export class ContentDetailComponent implements OnDestroy {
   private backToContentList(replaceUrl = false) {
     const commands = this.activatedRoute.snapshot.url.map(el => el.path).slice(1, -1);
     this.router.navigate(['content-list', ...commands], { replaceUrl });
-  }
-
-  ngOnDestroy(): void {
-    this.destroyed$.next(true);
   }
 }
