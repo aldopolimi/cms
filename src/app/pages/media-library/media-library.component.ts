@@ -20,18 +20,17 @@ import { SpinnerDialogService } from '../../services/spinner-dialog.service';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
-  selector: 'app-media-library',
-  standalone: true,
-  imports: [
-    MatListModule,
-    MatIconModule,
-    NgOptimizedImage,
-    UploadButtonComponent,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatInputModule,
-  ],
-  template: `
+    selector: 'app-media-library',
+    imports: [
+        MatListModule,
+        MatIconModule,
+        NgOptimizedImage,
+        UploadButtonComponent,
+        ReactiveFormsModule,
+        MatButtonModule,
+        MatInputModule,
+    ],
+    template: `
     <div class="app-page">
       <form [formGroup]="uploadForm">
         <app-upload-button formControlName="file" [accept]="mediaAccept()"></app-upload-button>
@@ -88,7 +87,7 @@ import { MatInputModule } from '@angular/material/input';
       </mat-list>
     </div>
   `,
-  styles: `
+    styles: `
     .mat-mdc-list-item-avatar {
       border-radius: 0;
       background-color: rgba(255, 255, 255, 0.7);
@@ -98,7 +97,7 @@ import { MatInputModule } from '@angular/material/input';
       color: inherit;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MediaLibraryComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();

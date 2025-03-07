@@ -3,10 +3,9 @@ import { ChangeDetectionStrategy, Component, Signal, computed, input } from '@an
 import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
-  selector: 'app-content-detail-basic-information-box',
-  standalone: true,
-  imports: [CommonModule, MatExpansionModule],
-  template: `
+    selector: 'app-content-detail-basic-information-box',
+    imports: [CommonModule, MatExpansionModule],
+    template: `
     <mat-accordion>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -63,8 +62,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
       </mat-expansion-panel>
     </mat-accordion>
   `,
-  styles: ``,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: ``,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContentDetailBasicInformationBoxComponent {
   slug = input.required<string>();

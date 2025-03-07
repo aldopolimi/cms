@@ -5,10 +5,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-content-detail-actions-box',
-  standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule],
-  template: `
+    selector: 'app-content-detail-actions-box',
+    imports: [MatCardModule, MatButtonModule, MatIconModule],
+    template: `
     <mat-card>
       <mat-card-content>
         @if (contentStatus() === 'draft') {
@@ -44,14 +43,14 @@ import { MatIconModule } from '@angular/material/icon';
       </mat-card-content>
     </mat-card>
   `,
-  styles: `
+    styles: `
     mat-card > mat-card-content > button {
       width: 100%;
     }
     mat-card > mat-card-content > button:not(:last-child) {
       margin-bottom: 10px;
     }`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContentDetailActionsBoxComponent {
   contentStatus = input.required<string>();

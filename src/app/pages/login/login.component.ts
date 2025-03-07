@@ -8,10 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { ContentTreeService } from '../../services/content-tree.service';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
-  template: `
+    selector: 'app-login',
+    imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+    template: `
     <div class="app-container app-center">
       @if (status() === 'idle') {
         <button mat-flat-button (click)="login()">
@@ -22,8 +21,8 @@ import { ContentTreeService } from '../../services/content-tree.service';
       }
     </div>
   `,
-  styles: ``,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: ``,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent {
   authService = inject(AuthService);

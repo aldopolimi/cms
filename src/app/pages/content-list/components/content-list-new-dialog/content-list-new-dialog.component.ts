@@ -23,19 +23,18 @@ import { Subject, takeUntil } from 'rxjs';
 import { uniqueSlugValidator } from '../../../../validators/unique-slug.validator';
 
 @Component({
-  selector: 'app-content-list-new-dialog',
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatInputModule,
-    MatFormFieldModule,
-    MatButtonModule,
-    MatDialogTitle,
-    MatDialogContent,
-    MatDialogActions,
-    MatDialogClose,
-  ],
-  template: `
+    selector: 'app-content-list-new-dialog',
+    imports: [
+        ReactiveFormsModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatButtonModule,
+        MatDialogTitle,
+        MatDialogContent,
+        MatDialogActions,
+        MatDialogClose,
+    ],
+    template: `
     <h1 mat-dialog-title>New content</h1>
     <form [formGroup]="contentForm" (ngSubmit)="onSubmit()">
       <div mat-dialog-content>
@@ -76,7 +75,7 @@ import { uniqueSlugValidator } from '../../../../validators/unique-slug.validato
       </div>
     </form>
   `,
-  styles: `
+    styles: `
     .mat-mdc-dialog-content {
       display: flex;
       flex-direction: column;
@@ -86,7 +85,7 @@ import { uniqueSlugValidator } from '../../../../validators/unique-slug.validato
       margin-bottom: 10px;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContentListNewDialogComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();

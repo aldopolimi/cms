@@ -9,10 +9,9 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { ContentElement } from '../../models/content-tree';
 
 @Component({
-  selector: 'app-sidenav',
-  standalone: true,
-  imports: [MatTreeModule, MatIconModule, MatButtonModule, RouterModule],
-  template: `
+    selector: 'app-sidenav',
+    imports: [MatTreeModule, MatIconModule, MatButtonModule, RouterModule],
+    template: `
     <div class="app-tree-wrapper">
       <h3>CONTENT MANAGEMENT</h3>
 
@@ -59,7 +58,7 @@ import { ContentElement } from '../../models/content-tree';
       </ul>
     </div>
   `,
-  styles: `
+    styles: `
 
     .app-tree-wrapper {
       padding: 40px 80px 40px 20px;
@@ -84,7 +83,7 @@ import { ContentElement } from '../../models/content-tree';
     }
 
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidenavComponent {
   contentTreeService = inject(ContentTreeService);

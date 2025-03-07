@@ -25,20 +25,19 @@ import { ContentListNewDialogComponent } from './components/content-list-new-dia
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-content-list',
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatTableModule,
-    MatButtonModule,
-    MatPaginatorModule,
-    CommonModule,
-    MatIconModule,
-    RouterModule,
-  ],
-  template: `
+    selector: 'app-content-list',
+    imports: [
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatTableModule,
+        MatButtonModule,
+        MatPaginatorModule,
+        CommonModule,
+        MatIconModule,
+        RouterModule,
+    ],
+    template: `
     <div class="app-page">
       <div class="locale-selector">
         <mat-form-field appearance="outline">
@@ -149,7 +148,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
       </div>
     </div>
   `,
-  styles: `
+    styles: `
     .locale-selector {
       display: flex;
       justify-content: flex-end;
@@ -172,7 +171,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContentListComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();

@@ -8,17 +8,16 @@ import { SidenavComponent } from './components/sidenav/sidenav.component';
 import { AuthService } from './services/auth.service';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    ToolbarComponent,
-    MatSidenavModule,
-    SidenavComponent,
-    MatButtonModule,
-  ],
-  template: `
+    selector: 'app-root',
+    imports: [
+        CommonModule,
+        RouterOutlet,
+        ToolbarComponent,
+        MatSidenavModule,
+        SidenavComponent,
+        MatButtonModule,
+    ],
+    template: `
     <mat-sidenav-container class="app-container" autosize>
       <mat-sidenav #sidenav mode="side">
         @if (authService.isLoggedIn()) {
@@ -34,8 +33,8 @@ import { AuthService } from './services/auth.service';
       </mat-sidenav-content>
     </mat-sidenav-container>
   `,
-  styles: ``,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: ``,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
   matSideNav = viewChild(MatSidenav);

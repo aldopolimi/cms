@@ -13,10 +13,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-upload-button',
-  standalone: true,
-  imports: [MatButtonModule, MatIconModule],
-  template: `
+    selector: 'app-upload-button',
+    imports: [MatButtonModule, MatIconModule],
+    template: `
     <div class="wrapper">
       <input
         type="file"
@@ -44,7 +43,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       }
     </div>
   `,
-  styles: `
+    styles: `
     .wrapper {
       display: inline-flex;
       align-items: center;
@@ -59,14 +58,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       margin-right: 10px;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      multi: true,
-      useExisting: UploadButtonComponent,
-    },
-  ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            multi: true,
+            useExisting: UploadButtonComponent,
+        },
+    ]
 })
 export class UploadButtonComponent implements ControlValueAccessor {
   private readonly ONE_MEGABYTE = 1048576;
