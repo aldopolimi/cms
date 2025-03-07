@@ -5,9 +5,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-    selector: 'app-toolbar',
-    imports: [RouterModule, MatToolbarModule, MatButtonModule, MatIconModule],
-    template: `
+  selector: 'app-toolbar',
+  imports: [RouterModule, MatToolbarModule, MatButtonModule, MatIconModule],
+  template: `
     <mat-toolbar>
       <button mat-icon-button aria-label="menu" (click)="menuClick.emit()">
         <mat-icon>menu</mat-icon>
@@ -25,12 +25,12 @@ import { MatIconModule } from '@angular/material/icon';
       </button>
     </mat-toolbar>
   `,
-    styles: `
+  styles: `
     .app-toolbar-spacer {
       flex: 1 1 auto;
     }
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToolbarComponent {
   menuClick = output<void>();
