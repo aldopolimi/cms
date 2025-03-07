@@ -2,19 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { SpinnerDialogComponent } from '../components/spinner-dialog/spinner-dialog.component';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class SpinnerDialogService {
   dialog = inject(MatDialog);
 
-  constructor() {}
-
-  open(): MatDialogRef<any, SpinnerDialogComponent> {
+  open(): MatDialogRef<SpinnerDialogComponent> {
     return this.dialog.open(SpinnerDialogComponent, { disableClose: true });
   }
 
-  close(ref: MatDialogRef<any, SpinnerDialogComponent>) {
+  close(ref: MatDialogRef<SpinnerDialogComponent>) {
     ref.close();
   }
 }

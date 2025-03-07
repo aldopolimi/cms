@@ -25,19 +25,19 @@ import { ContentListNewDialogComponent } from './components/content-list-new-dia
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
-    selector: 'app-content-list',
-    imports: [
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        MatTableModule,
-        MatButtonModule,
-        MatPaginatorModule,
-        CommonModule,
-        MatIconModule,
-        RouterModule,
-    ],
-    template: `
+  selector: 'app-content-list',
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatTableModule,
+    MatButtonModule,
+    MatPaginatorModule,
+    CommonModule,
+    MatIconModule,
+    RouterModule,
+  ],
+  template: `
     <div class="app-page">
       <div class="locale-selector">
         <mat-form-field appearance="outline">
@@ -74,7 +74,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
             <td mat-cell *matCellDef="let element">
               <span
                 [ngStyle]="{
-                  color: element.status === 'published' ? 'lightgreen' : 'orange'
+                  color: element.status === 'published' ? 'lightgreen' : 'orange',
                 }">
                 {{ element.status | uppercase }}
               </span>
@@ -148,7 +148,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
       </div>
     </div>
   `,
-    styles: `
+  styles: `
     .locale-selector {
       display: flex;
       justify-content: flex-end;
@@ -160,7 +160,9 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
         align-items: center;
         padding: 10px 0;
 
-        h1 { margin: 0 }
+        h1 {
+          margin: 0;
+        }
       }
       .actions > div {
         display: flex;
@@ -171,7 +173,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
       }
     }
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContentListComponent implements OnDestroy {
   private destroyed$: Subject<boolean> = new Subject<boolean>();
@@ -262,6 +264,7 @@ export class ContentListComponent implements OnDestroy {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async create(data: any): Promise<void> {
     const spinnerRef = this.spinnerDialogService.open();
 
@@ -286,6 +289,7 @@ export class ContentListComponent implements OnDestroy {
 
   async onRevision(record: DocumentData): Promise<void> {
     const collectionName = this.contentTreeService.activeCollection()!;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { docs } = await this.contentManagementService.findLastRevisions(
       collectionName,
       record['slug']

@@ -22,8 +22,8 @@ import { ContentDetailActionsBoxComponent } from './components/content-detail-ac
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
-    selector: 'app-content-detail',
-    template: `
+  selector: 'app-content-detail',
+  template: `
     <div class="app-page">
       <button mat-flat-button type="button" (click)="onBack()">
         <mat-icon>arrow_back</mat-icon> Back to {{ contentTreeService.activeCollectionUrl() }}
@@ -194,9 +194,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
       </div>
     </div>
   `,
-    styles: `
+  styles: `
     mat-expansion-panel mat-card,
-    mat-expansion-panel mat-card mat-card-header{
+    mat-expansion-panel mat-card mat-card-header {
       margin-bottom: 10px;
     }
 
@@ -205,20 +205,20 @@ import { toSignal } from '@angular/core/rxjs-interop';
       margin: 10px 0;
     }
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        CommonModule,
-        MatExpansionModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatSelectModule,
-        ContentDetailBasicInformationBoxComponent,
-        ContentDetailActionsBoxComponent,
-    ]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    MatExpansionModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    ContentDetailBasicInformationBoxComponent,
+    ContentDetailActionsBoxComponent,
+  ],
 })
 export class ContentDetailComponent {
   activatedRoute = inject(ActivatedRoute);
@@ -269,8 +269,6 @@ export class ContentDetailComponent {
   contentFormStatus = toSignal(this.contentForm.statusChanges, {
     initialValue: this.contentForm.status,
   });
-
-  constructor() {}
 
   async onPublish(): Promise<void> {
     if (!this.contentForm.valid) {

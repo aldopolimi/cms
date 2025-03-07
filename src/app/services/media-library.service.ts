@@ -9,13 +9,9 @@ import {
   uploadBytes,
 } from '@angular/fire/storage';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class MediaLibraryService {
   private storage: Storage = inject(Storage);
-
-  constructor() {}
 
   async upload(file: File, path: string) {
     console.log('🚀 ~ MediaLibraryService ~ upload ~ upload file');

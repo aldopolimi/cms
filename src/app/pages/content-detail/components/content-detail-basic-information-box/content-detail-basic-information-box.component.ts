@@ -3,9 +3,9 @@ import { ChangeDetectionStrategy, Component, Signal, computed, input } from '@an
 import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
-    selector: 'app-content-detail-basic-information-box',
-    imports: [CommonModule, MatExpansionModule],
-    template: `
+  selector: 'app-content-detail-basic-information-box',
+  imports: [CommonModule, MatExpansionModule],
+  template: `
     <mat-accordion>
       <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
@@ -30,7 +30,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
               <td>Status</td>
               <td
                 [ngStyle]="{
-                  color: status() === 'published' ? 'lightgreen' : 'orange'
+                  color: status() === 'published' ? 'lightgreen' : 'orange',
                 }">
                 {{ status() | uppercase }}
               </td>
@@ -62,8 +62,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
       </mat-expansion-panel>
     </mat-accordion>
   `,
-    styles: ``,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContentDetailBasicInformationBoxComponent {
   slug = input.required<string>();
@@ -74,7 +74,7 @@ export class ContentDetailBasicInformationBoxComponent {
   updatedAt = input<Date>();
   publishedAt = input<Date>();
 
-  private readonly localeMap: Map<string, string> = new Map([
+  private readonly localeMap = new Map<string, string>([
     ['it-IT', '🇮🇹'],
     ['en-EN', '🇬🇧'],
     ['fr-FR', '🇫🇷'],

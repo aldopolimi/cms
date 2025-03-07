@@ -2,9 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Firestore, collection, getDocs, limit, query } from '@angular/fire/firestore';
 import { ContentElement, ContentTree } from '../models/content-tree';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ContentTreeService {
   private firestore: Firestore = inject(Firestore);
   private collectionName = 'content-tree';
@@ -13,8 +11,6 @@ export class ContentTreeService {
   contentTree = signal<ContentTree | null>(null);
   activeCollectionUrl = signal<string | null>(null);
   activeCollection = computed(() => this.getActiveCollection(this.activeCollectionUrl()));
-
-  constructor() {}
 
   async fetchContentTree(): Promise<void> {
     console.log('🚀 ~ ContentTreeService ~ fetchContentTree ~ get content tree');
@@ -36,7 +32,7 @@ export class ContentTreeService {
       console.log('🚀 ~ ContentTreeService ~ getActiveCollection ~ activeCollection: null');
       return null;
     }
-    for (let element of contentElements) {
+    for (const element of contentElements) {
       const collection = this.getCollectionByUrl(element, url);
       if (collection) {
         console.log(

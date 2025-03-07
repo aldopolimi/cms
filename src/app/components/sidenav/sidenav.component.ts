@@ -9,16 +9,16 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { ContentElement } from '../../models/content-tree';
 
 @Component({
-    selector: 'app-sidenav',
-    imports: [MatTreeModule, MatIconModule, MatButtonModule, RouterModule],
-    template: `
+  selector: 'app-sidenav',
+  imports: [MatTreeModule, MatIconModule, MatButtonModule, RouterModule],
+  template: `
     <div class="app-tree-wrapper">
       <h3>CONTENT MANAGEMENT</h3>
 
       <mat-tree [dataSource]="menuItems()" [treeControl]="treeControl">
         <!-- This is the tree node template for leaf nodes -->
         <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-          <button mat-icon-button disabled></button>
+          <button mat-icon-button disabled>&nbsp;</button>
           @if (node.path) {
             <a
               [routerLink]="'/content-list/' + contentManagementService.locale() + '/' + node.path"
@@ -58,8 +58,7 @@ import { ContentElement } from '../../models/content-tree';
       </ul>
     </div>
   `,
-    styles: `
-
+  styles: `
     .app-tree-wrapper {
       padding: 40px 80px 40px 20px;
     }
@@ -81,9 +80,8 @@ import { ContentElement } from '../../models/content-tree';
         padding: 14px 0;
       }
     }
-
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidenavComponent {
   contentTreeService = inject(ContentTreeService);
@@ -97,6 +95,7 @@ export class SidenavComponent {
       path: node.path,
     };
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   treeControl = new FlatTreeControl<any>(
     node => node.level,
     node => node.expandable
@@ -117,7 +116,6 @@ export class SidenavComponent {
       : new MatTreeFlatDataSource(this.treeControl, this.treeFlattener, [])
   );
 
-  constructor() {}
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   hasChild = (_: number, node: any) => node.expandable;
 }

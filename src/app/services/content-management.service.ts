@@ -16,22 +16,17 @@ import {
   getCountFromServer,
   endBefore,
   limitToLast,
-  deleteDoc,
   updateDoc,
-  getDoc,
-  getDocFromServer,
 } from '@angular/fire/firestore';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class ContentManagementService {
   private firestore: Firestore = inject(Firestore);
 
   locale = signal('it-IT');
 
   constructor() {
-    let locale = localStorage.getItem('locale');
+    const locale = localStorage.getItem('locale');
     console.log(
       `🚀 ~ ContentManagementService ~ constructor ~ retreive locale from localStorage: ${locale}`
     );
@@ -59,7 +54,7 @@ export class ContentManagementService {
     );
     const collectionRef = collection(this.firestore, collectionName);
 
-    let baseQuery = query(
+    const baseQuery = query(
       collectionRef,
       and(where('locale', '==', this.locale()), where('active', '==', true))
     );
@@ -89,7 +84,7 @@ export class ContentManagementService {
     );
     const collectionRef = collection(this.firestore, collectionName);
 
-    let q = query(
+    const q = query(
       collectionRef,
       and(
         where('slug', '==', slug),
@@ -114,7 +109,7 @@ export class ContentManagementService {
     );
     const collectionRef = collection(this.firestore, collectionName);
 
-    let q = query(
+    const q = query(
       collectionRef,
       and(where('slug', '==', slug), where('locale', '==', this.locale())),
       orderBy('createdAt', 'asc'),
@@ -128,6 +123,7 @@ export class ContentManagementService {
     return { docs };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async create(collectionName: string, data: any): Promise<DocumentReference<any, DocumentData>> {
     console.log(
       `🚀 ~ ContentManagementService ~ create ~ collectionName: ${collectionName}, data: ${JSON.stringify(
@@ -142,7 +138,9 @@ export class ContentManagementService {
   async publish(
     collectionName: string,
     documentRef: DocumentReference<DocumentData, DocumentData>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<DocumentReference<any, DocumentData>> {
     console.log(
       `🚀 ~ ContentManagementService ~ publish ~ collectionName: ${collectionName}, data: ${JSON.stringify(
@@ -165,7 +163,9 @@ export class ContentManagementService {
   async draft(
     collectionName: string,
     documentRef: DocumentReference<DocumentData, DocumentData>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<DocumentReference<any, DocumentData>> {
     console.log(
       `🚀 ~ ContentManagementService ~ draft ~ collectionName: ${collectionName}, data: ${JSON.stringify(
@@ -188,7 +188,9 @@ export class ContentManagementService {
   async save(
     collectionName: string,
     documentRef: DocumentReference<DocumentData, DocumentData>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<DocumentReference<any, DocumentData>> {
     console.log(
       `🚀 ~ ContentManagementService ~ save ~ collectionName: ${collectionName}, data: ${JSON.stringify(
@@ -199,15 +201,12 @@ export class ContentManagementService {
     const { revision } = data;
 
     await updateDoc(documentRef, { active: false });
-    return this.create(collectionName, {
-      ...data,
-      revision: revision + 1,
-      updatedAt: new Date(),
-    });
+    return this.create(collectionName, { ...data, revision: revision + 1, updatedAt: new Date() });
   }
 
   async update(
     documentRef: DocumentReference<DocumentData, DocumentData>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
   ): Promise<void> {
     console.log(
@@ -231,7 +230,7 @@ export class ContentManagementService {
     );
     const collectionRef = collection(this.firestore, collectionName);
 
-    let q = query(
+    const q = query(
       collectionRef,
       and(
         where('slug', '==', slug),

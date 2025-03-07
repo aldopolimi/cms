@@ -1,7 +1,8 @@
-import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { inject } from '@angular/core';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const isLoggedInGuard: CanActivateFn = (route, segments) => {
   console.log(`🚀 ~ isLoggedInGuard ~ route.url: /${route.url.map(el => el.path).join('/')}`);
   const router = inject(Router);

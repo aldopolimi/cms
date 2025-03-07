@@ -13,9 +13,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-    selector: 'app-upload-button',
-    imports: [MatButtonModule, MatIconModule],
-    template: `
+  selector: 'app-upload-button',
+  imports: [MatButtonModule, MatIconModule],
+  template: `
     <div class="wrapper">
       <input
         type="file"
@@ -43,7 +43,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       }
     </div>
   `,
-    styles: `
+  styles: `
     .wrapper {
       display: inline-flex;
       align-items: center;
@@ -58,14 +58,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
       margin-right: 10px;
     }
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            multi: true,
-            useExisting: UploadButtonComponent,
-        },
-    ]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      multi: true,
+      useExisting: UploadButtonComponent,
+    },
+  ],
 })
 export class UploadButtonComponent implements ControlValueAccessor {
   private readonly ONE_MEGABYTE = 1048576;
@@ -82,9 +82,12 @@ export class UploadButtonComponent implements ControlValueAccessor {
 
   disabled = signal(false);
   touched = false;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
   onChange = (file: File | null) => {};
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   onTouched = () => {};
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onFileSelected(event: any) {
     this.markAsTouched();
     if (!this.disabled()) {
@@ -120,10 +123,12 @@ export class UploadButtonComponent implements ControlValueAccessor {
     this.fileUploadElement().nativeElement.value = '';
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerOnChange(onChange: any) {
     this.onChange = onChange;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerOnTouched(onTouched: any) {
     this.onTouched = onTouched;
   }

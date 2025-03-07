@@ -1,17 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  Auth,
-  GoogleAuthProvider,
-  authState,
-  user,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  User,
-  getAuth,
-} from '@angular/fire/auth';
-import { firstValueFrom, lastValueFrom, tap } from 'rxjs';
+import { Auth, GoogleAuthProvider, user, signInWithPopup, signOut, User } from '@angular/fire/auth';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -20,8 +9,6 @@ export class AuthService {
   private auth: Auth = inject(Auth);
   user = signal<User | null>(null);
   isLoggedIn = computed(() => !!this.user());
-
-  constructor() {}
 
   async initUser(): Promise<User | null> {
     console.log('🚀 ~ AuthService ~ initUser ~ get user');

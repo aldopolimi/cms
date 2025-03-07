@@ -8,9 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { ContentTreeService } from '../../services/content-tree.service';
 
 @Component({
-    selector: 'app-login',
-    imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
-    template: `
+  selector: 'app-login',
+  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  template: `
     <div class="app-container app-center">
       @if (status() === 'idle') {
         <button mat-flat-button (click)="login()">
@@ -21,8 +21,8 @@ import { ContentTreeService } from '../../services/content-tree.service';
       }
     </div>
   `,
-    styles: ``,
-    changeDetection: ChangeDetectionStrategy.OnPush
+  styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   authService = inject(AuthService);
@@ -34,7 +34,7 @@ export class LoginComponent {
 
   async login() {
     this.status.set('pending');
-    let success = await this.authService.loginWithGoogle();
+    const success = await this.authService.loginWithGoogle();
     if (!success) {
       this.status.set('idle');
       this.snackBar.open('Something went wrong, please try again', '', { duration: 2000 });
@@ -44,6 +44,7 @@ export class LoginComponent {
     try {
       await this.contentTreeService.fetchContentTree();
     } catch (error) {
+      console.log(error);
       this.status.set('idle');
       this.snackBar.open('Something went wrong, please try again', '', { duration: 2000 });
       return;

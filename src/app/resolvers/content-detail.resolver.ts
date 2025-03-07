@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 export const contentDetailResolver: ResolveFn<
   QueryDocumentSnapshot<DocumentData, DocumentData>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 > = async (route, state) => {
   const contentManagementService = inject(ContentManagementService);
   const contentTreeService = inject(ContentTreeService);
